@@ -35,6 +35,15 @@ static long get_name_index(char *name) {
 
         buffer[strlen(buffer) - 1] = '\0';
 
+//        for(int i = 0; i < strlen(buffer); i++) {
+//            printf("%d ", buffer[i]);
+//        }
+//        printf("\n");
+//        for(int i = 0; i < strlen(name); i++) {
+//            printf("%d ", name[i]);
+//        }
+//        printf("||||||||||||||||||\n");
+
         if (strcmp(buffer, name) == 0) {
             found = 1;
             break;
@@ -82,10 +91,17 @@ void build_person_data(person_data *p, long index) {
 person_data* lookup_1_svc(person_data *p, struct svc_req *rqstp) {
     static person_data result;
 
+    printf("%li\n", get_name_index(p->name));
+
     if(get_name_index(p->name) != -1) {
         build_person_data(&result, get_name_index(p->name));
         return &result;
     }
+    else {
+        strcpy(result.name, "NOT FOUND");
+        strcpy(result.street, "NOT FOUND");
+        strcpy(result.phone, "NOT FOUND");
+    }
 
-    return NULL;
+    return &result;
 }

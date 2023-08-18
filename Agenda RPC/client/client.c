@@ -76,14 +76,9 @@ void lookup(char *name, CLIENT *clnt) {
 
 }
 
+
 int main(int argc, char *argv[]) {
     printf("/*** Client started ***\\\n");
-
-    FILE *f = fopen("data.txt", "r");
-    assert(f != NULL);
-
-    read_info_t info;
-    person_data_read(f, &info);
 
     printf("/*** Data read successfully ***\\\n");
 
@@ -97,8 +92,43 @@ int main(int argc, char *argv[]) {
 
     printf("/*** Client created ***\\\n");
 
-    //insert(info.data[0], clnt);
-    lookup("Ana Maria", clnt);
+    int key; char key_str[8];
+    char name[128];
+    while(1) {
+        fprintf(stdout, "1 - Initialize\n");
+        fprintf(stdout, "2 - Lookup\n");
+
+        fprintf(stdout, "Type the option: ");
+
+        fflush(stdout);
+        fgets(key_str, 8, stdin);
+        key = atoi(key_str); // Fazendo essa macacada
+                        // pq essa merda de linguagem tem problema com stdin :D
+
+        switch(key) {
+            case(1):
+//                FILE *f = fopen("data.txt", "r");
+//                assert(f != NULL);
+//
+//                read_info_t info;
+//                person_data_read(f, &info);
+
+                break;
+
+            case(2):
+                fprintf(stdout, "Type the name you want to search: ");
+
+                fflush(stdout);
+                fgets(name, 128, stdin);
+                name[strlen(name) - 1] = '\0';
+
+                lookup(name, clnt);
+                break;
+
+            default:
+                break;
+        }
+    }
 
     return 0;
 }
