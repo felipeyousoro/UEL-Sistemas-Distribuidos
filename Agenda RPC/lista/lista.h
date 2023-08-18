@@ -33,6 +33,7 @@ Lista search_elements(Lista list, void *param, int (*cmp)(void *, void *));
 
 /* Operações de para iterar */
 
+// Index starts at 0
 list_node get_index(Lista list, int index);
 
 list_node get_head(Lista list);

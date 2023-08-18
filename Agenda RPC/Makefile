@@ -9,13 +9,13 @@ SERVER_OBJS = $(LISTA:.c=.o)
 all: comp_rpc comp_client comp_server
 
 comp_rpc:
-	rpcgen -C notebook.x
+	cd notebook && rpcgen -C notebook.x
 
 comp_client: $(CLIENT_OBJS)
-	gcc -o run_client $(CLIENT_PATH) $(CLIENT_OBJS) notebook_clnt.c notebook_xdr.c -lnsl
+	gcc -o run_client $(CLIENT_PATH) $(CLIENT_OBJS) notebook/notebook_clnt.c notebook/notebook_xdr.c -lnsl
 
 comp_server:
-	gcc -o run_server $(SERVER_PATH) $(SERVER_OBJS) notebook_svc.c notebook_xdr.c -lnsl
+	gcc -o run_server $(SERVER_PATH) $(SERVER_OBJS) notebook/notebook_svc.c notebook/notebook_xdr.c -lnsl
 
 %.o: %.c
 	gcc -c $< -o $@

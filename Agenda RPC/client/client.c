@@ -3,10 +3,10 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "../notebook.h"
+#include "../notebook/notebook.h"
 #include "../lista/lista.h"
 
-struct person_data *person_data_create(char *name, char *street, char *phone) {
+person_data *person_data_create(char *name, char *street, char *phone) {
     person_data *data = malloc(sizeof(struct person_data));
 
     strcpy(data->name, name);
@@ -17,9 +17,9 @@ struct person_data *person_data_create(char *name, char *street, char *phone) {
 }
 
 void print_person_data(person_data *data) {
-    printf("Name: %s", data->name);
-    printf("Street: %s", data->street);
-    printf("Phone: %s", data->phone);
+    printf("Name: %s\n", data->name);
+    printf("Street: %s\n", data->street);
+    printf("Phone: %s\n", data->phone);
 }
 
 typedef struct read_data {
@@ -38,6 +38,10 @@ void person_data_read(FILE *f, read_info_t *info) {
         fgets(street, 128, f);
         fgets(phone, 128, f);
 
+        name[strlen(name) - 1] = '\0';
+        street[strlen(street) - 1] = '\0';
+        phone[strlen(phone) - 1] = '\0';
+
         person_data *data = person_data_create(name, street, phone);
         insert_list(lista, data);
 
@@ -55,34 +59,46 @@ void person_data_read(FILE *f, read_info_t *info) {
 
 }
 
-void insert(CLIENT *clnt, person_data *data) {
+void insert(person_data *data, CLIENT *clnt) {
+    insert_1(data, clnt);
+}
 
-    person_data *gay = insert_1(data, clnt);
+void lookup(char *name, CLIENT *clnt) {
+    static person_data p;
+    strcpy(p.name, name);
 
-    print_person_data(gay);
+    person_data *result = lookup_1(&p, clnt);
+    if (!result) {
+        printf("Not found\n");
+    } else {
+        print_person_data(result);
+    }
+
 }
 
 int main(int argc, char *argv[]) {
-    printf("Client started\n");
+    printf("/*** Client started ***\\\n");
 
     FILE *f = fopen("data.txt", "r");
     assert(f != NULL);
+
     read_info_t info;
     person_data_read(f, &info);
 
-    printf("Data read successfully\n");
+    printf("/*** Data read successfully ***\\\n");
 
     CLIENT *clnt;
-    clnt = clnt_create (argv[1], NOTEBOOK_PROG, NOTEBOOK_VERS, "udp");
+    clnt = clnt_create ("127.0.0.1", NOTEBOOK_PROG, NOTEBOOK_VERS, "udp");
     if (clnt == (CLIENT *) NULL)
     {
         clnt_pcreateerror ("Mamão");
         exit(1);
     }
 
-    printf("Client created\n");
+    printf("/*** Client created ***\\\n");
 
-    insert(clnt, info.data[0]);
+    //insert(info.data[0], clnt);
+    lookup("Ana Maria", clnt);
 
     return 0;
 }

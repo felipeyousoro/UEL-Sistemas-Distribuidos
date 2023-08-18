@@ -1,4 +1,4 @@
-#define PROGRAM_NUMBER 1111111
+#define PROGRAM_NUMBER 69420
 #define VERSION_NUMBER 1
 
 struct person_data {
@@ -11,7 +11,8 @@ program NOTEBOOK_PROG
         {
                 version NOTEBOOK_VERS
         {
-            person_data INSERT (person_data) = 1;
+            void INSERT(person_data) = 1;
+            person_data LOOKUP(person_data) = 2;
         }
         = VERSION_NUMBER;
         }

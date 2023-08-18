@@ -21,6 +21,7 @@ notebook_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 {
 	union {
 		person_data insert_1_arg;
+		person_data lookup_1_arg;
 	} argument;
 	char *result;
 	xdrproc_t _xdr_argument, _xdr_result;
@@ -33,8 +34,14 @@ notebook_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 
 	case INSERT:
 		_xdr_argument = (xdrproc_t) xdr_person_data;
-		_xdr_result = (xdrproc_t) xdr_person_data;
+		_xdr_result = (xdrproc_t) xdr_void;
 		local = (char *(*)(char *, struct svc_req *)) insert_1_svc;
+		break;
+
+	case LOOKUP:
+		_xdr_argument = (xdrproc_t) xdr_person_data;
+		_xdr_result = (xdrproc_t) xdr_person_data;
+		local = (char *(*)(char *, struct svc_req *)) lookup_1_svc;
 		break;
 
 	default:
