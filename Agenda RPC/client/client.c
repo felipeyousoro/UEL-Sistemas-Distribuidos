@@ -68,12 +68,7 @@ void lookup(char *name, CLIENT *clnt) {
     strcpy(p.name, name);
 
     person_data *result = lookup_1(&p, clnt);
-    if (!result) {
-        printf("Not found\n");
-    } else {
-        print_person_data(result);
-    }
-
+    print_person_data(result);
 }
 
 
