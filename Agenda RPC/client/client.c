@@ -63,6 +63,41 @@ void lookup(CLIENT *clnt) {
     print_person_data(result);
 }
 
+void delete(CLIENT *clnt) {
+    fprintf(stdout, "Type the name you want to delete: ");
+    fflush(stdout);
+
+    char name[NAME_SIZE];
+    fgets(name, NAME_SIZE, stdin);
+    name[strlen(name) - 1] = '\0';
+
+    static person_data p;
+    strcpy(p.name, name);
+
+    delete_1(&p, clnt);
+}
+
+void update(CLIENT *clnt) {
+    static person_data p;
+
+    fprintf(stdout, "Type the name you want to update: ");
+    fflush(stdout);
+    fgets(p.name, NAME_SIZE, stdin);
+    p.name[strlen(p.name) - 1] = '\0';
+
+    fprintf(stdout, "Type the new address: ");
+    fflush(stdout);
+    fgets(p.address, ADDRESS_SIZE, stdin);
+    p.address[strlen(p.address) - 1] = '\0';
+
+    fprintf(stdout, "Type the new phone: ");
+    fflush(stdout);
+    fgets(p.phone, PHONE_SIZE, stdin);
+    p.phone[strlen(p.phone) - 1] = '\0';
+
+    update_1(&p, clnt);
+}
+
 
 int main(int argc, char *argv[]) {
     CLIENT *clnt;
@@ -79,6 +114,8 @@ int main(int argc, char *argv[]) {
         fprintf(stdout, "1 - Initialize\n");
         fprintf(stdout, "2 - Insert\n");
         fprintf(stdout, "3 - Lookup\n");
+        fprintf(stdout, "4 - Delete\n");
+        fprintf(stdout, "5 - Update\n");
 
         fprintf(stdout, "Type the option: ");
         fflush(stdout);
@@ -98,8 +135,14 @@ int main(int argc, char *argv[]) {
             case(3):
                 lookup(clnt);
                 break;
-            default:
+            case(4):
+                delete(clnt);
                 break;
+            case(5):
+                update(clnt);
+                break;
+            default:
+                return 0;
         }
 
         fprintf(stdout, "\n");

@@ -18,6 +18,8 @@ program NOTEBOOK_PROG
             void INSERT(person_data) = 1;
             person_data LOOKUP(person_data) = 2;
             void RESET() = 3;
+            void DELETE(person_data) = 4;
+            void UPDATE(person_data) = 5;
         }
         = VERSION_NUMBER;
         }

@@ -22,6 +22,8 @@ notebook_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 	union {
 		person_data insert_1_arg;
 		person_data lookup_1_arg;
+		person_data delete_1_arg;
+		person_data update_1_arg;
 	} argument;
 	char *result;
 	xdrproc_t _xdr_argument, _xdr_result;
@@ -48,6 +50,18 @@ notebook_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 		_xdr_argument = (xdrproc_t) xdr_void;
 		_xdr_result = (xdrproc_t) xdr_void;
 		local = (char *(*)(char *, struct svc_req *)) reset_1_svc;
+		break;
+
+	case DELETE:
+		_xdr_argument = (xdrproc_t) xdr_person_data;
+		_xdr_result = (xdrproc_t) xdr_void;
+		local = (char *(*)(char *, struct svc_req *)) delete_1_svc;
+		break;
+
+	case UPDATE:
+		_xdr_argument = (xdrproc_t) xdr_person_data;
+		_xdr_result = (xdrproc_t) xdr_void;
+		local = (char *(*)(char *, struct svc_req *)) update_1_svc;
 		break;
 
 	default:

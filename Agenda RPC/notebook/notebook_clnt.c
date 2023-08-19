@@ -53,3 +53,33 @@ reset_1(void *argp, CLIENT *clnt)
 	}
 	return ((void *)&clnt_res);
 }
+
+void *
+delete_1(person_data *argp, CLIENT *clnt)
+{
+	static char clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, DELETE,
+		(xdrproc_t) xdr_person_data, (caddr_t) argp,
+		(xdrproc_t) xdr_void, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return ((void *)&clnt_res);
+}
+
+void *
+update_1(person_data *argp, CLIENT *clnt)
+{
+	static char clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, UPDATE,
+		(xdrproc_t) xdr_person_data, (caddr_t) argp,
+		(xdrproc_t) xdr_void, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return ((void *)&clnt_res);
+}

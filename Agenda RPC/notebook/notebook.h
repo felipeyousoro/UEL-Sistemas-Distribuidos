@@ -34,6 +34,12 @@ extern  person_data * lookup_1_svc(person_data *, struct svc_req *);
 #define RESET 3
 extern  void * reset_1(void *, CLIENT *);
 extern  void * reset_1_svc(void *, struct svc_req *);
+#define DELETE 4
+extern  void * delete_1(person_data *, CLIENT *);
+extern  void * delete_1_svc(person_data *, struct svc_req *);
+#define UPDATE 5
+extern  void * update_1(person_data *, CLIENT *);
+extern  void * update_1_svc(person_data *, struct svc_req *);
 extern int notebook_prog_1_freeresult (SVCXPRT *, xdrproc_t, caddr_t);
 
 #else /* K&R C */
@@ -46,6 +52,12 @@ extern  person_data * lookup_1_svc();
 #define RESET 3
 extern  void * reset_1();
 extern  void * reset_1_svc();
+#define DELETE 4
+extern  void * delete_1();
+extern  void * delete_1_svc();
+#define UPDATE 5
+extern  void * update_1();
+extern  void * update_1_svc();
 extern int notebook_prog_1_freeresult ();
 #endif /* K&R C */
 
