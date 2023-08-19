@@ -11,12 +11,51 @@ void insert(person_data *data, CLIENT *clnt) {
     insert_1(data, clnt);
 }
 
-void initialize(CLIENT *clnt) {
+void initialize(char *data, CLIENT *clnt) {
     reset_1(NULL, clnt);
 
+    FILE *fdata = fopen(data, "r");
+    Lista persons = person_data_read(fdata);
+    fclose(fdata);
+
+    foreach_list(persons, person_node) {
+        insert(get_data(person_node), clnt);
+    }
 }
 
-void lookup(char *name, CLIENT *clnt) {
+void build_and_insert(CLIENT *clnt) {
+    char name[NAME_SIZE], street[STREET_SIZE], phone[PHONE_SIZE];
+
+    fprintf(stdout, "Type the name: ");
+    fflush(stdout);
+    fgets(name, NAME_SIZE, stdin);
+    name[strlen(name) - 1] = '\0';
+
+    fprintf(stdout, "Type the street: ");
+    fflush(stdout);
+    fgets(street, STREET_SIZE, stdin);
+    street[strlen(street) - 1] = '\0';
+
+    fprintf(stdout, "Type the phone: ");
+    fflush(stdout);
+    fgets(phone, PHONE_SIZE, stdin);
+    phone[strlen(phone) - 1] = '\0';
+
+    person_data *p = person_data_create(name, street, phone);
+
+    insert(p, clnt);
+
+    free(p);
+}
+
+void lookup(CLIENT *clnt) {
+    fprintf(stdout, "Type the name you want to search: ");
+    fflush(stdout);
+
+    char name[NAME_SIZE];
+    fgets(name, NAME_SIZE, stdin);
+    name[strlen(name) - 1] = '\0';
+
     static person_data p;
     strcpy(p.name, name);
 
@@ -34,11 +73,12 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    int key; char key_str[8];
-    char name[128];
+    int key;
+    char key_str[8]; char *data = "data.txt";
     while(1) {
         fprintf(stdout, "1 - Initialize\n");
-        fprintf(stdout, "2 - Lookup\n");
+        fprintf(stdout, "2 - Insert\n");
+        fprintf(stdout, "3 - Lookup\n");
 
         fprintf(stdout, "Type the option: ");
         fflush(stdout);
@@ -50,25 +90,13 @@ int main(int argc, char *argv[]) {
 
         switch(key) {
             case(1):
-//                FILE *f = fopen("data.txt", "r");
-//                assert(f != NULL);
-//
-//                read_info_t info;
-//                person_data_read(f, &info);
-
+                initialize(data, clnt);
                 break;
-
             case(2):
-                fprintf(stdout, "Type the name you want to search: ");
-                fflush(stdout);
-
-                fgets(name, 128, stdin);
-                name[strlen(name) - 1] = '\0';
-
-                lookup(name, clnt);
+                build_and_insert(clnt);
                 break;
             case(3):
-
+                lookup(clnt);
                 break;
             default:
                 break;

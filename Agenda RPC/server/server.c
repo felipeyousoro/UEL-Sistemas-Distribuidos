@@ -42,8 +42,8 @@ static long get_name_index(char *name) {
     FILE *fname = fopen(DATABASE_NAME, "r");
     int found = 0; long index = 0;
     while (1) {
-        char buffer[128];
-        fgets(buffer, 128, fname);
+        char buffer[NAME_SIZE];
+        fgets(buffer, NAME_SIZE, fname);
         if(feof(fname)) break;
 
         buffer[strlen(buffer) - 1] = '\0';
@@ -76,10 +76,10 @@ static void build_person_data(person_data *p, long index) {
 
     int i = 0;
     while (1) {
-        char name[128], address[128], phone[128];
-        fgets(name, 128, fname);
-        fgets(address, 128, faddress);
-        fgets(phone, 128, fphone);
+        char name[NAME_SIZE], address[STREET_SIZE], phone[PHONE_SIZE];
+        fgets(name, NAME_SIZE, fname);
+        fgets(address, STREET_SIZE, faddress);
+        fgets(phone, PHONE_SIZE, fphone);
         if (feof(fname) || feof(faddress) || feof(fphone)) break;
 
         if (i == index) {
@@ -104,7 +104,7 @@ static void build_person_data(person_data *p, long index) {
 person_data* lookup_1_svc(person_data *p, struct svc_req *rqstp) {
     static person_data result;
 
-    printf("%li\n", get_name_index(p->name));
+    //printf("%li\n", get_name_index(p->name));
 
     if(get_name_index(p->name) != -1) {
         build_person_data(&result, get_name_index(p->name));
