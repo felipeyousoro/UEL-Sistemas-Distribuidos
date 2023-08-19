@@ -2,7 +2,7 @@
 #include <assert.h>
 
 #include "../notebook/notebook.h"
-#include "../lista/lista.h"
+#include "../person/person.h"
 
 char *DATABASE_NAME = "database/database-name.txt";
 char *DATABASE_ADDRESS = "database/database-phone.txt";
@@ -16,6 +16,19 @@ void *insert_1_svc(person_data *p, struct svc_req *rqstp) {
     fprintf(fname, "%s\n", p->name);
     fprintf(faddress, "%s\n", p->street);
     fprintf(fphone, "%s\n", p->phone);
+
+    fclose(fname);
+    fclose(faddress);
+    fclose(fphone);
+
+    static int result = 1;
+    return (void *) &result;
+}
+
+void *reset_1_svc(void *null, struct svc_req *rqstp) {
+    FILE *fname = fopen(DATABASE_NAME, "w");
+    FILE *faddress = fopen(DATABASE_ADDRESS, "w");
+    FILE *fphone = fopen(DATABASE_PHONE, "w");
 
     fclose(fname);
     fclose(faddress);
@@ -56,7 +69,7 @@ static long get_name_index(char *name) {
     return (found == 1) ? index : -1;
 }
 
-void build_person_data(person_data *p, long index) {
+static void build_person_data(person_data *p, long index) {
     FILE *fname = fopen(DATABASE_NAME, "r");
     FILE *faddress = fopen(DATABASE_ADDRESS, "r");
     FILE *fphone = fopen(DATABASE_PHONE, "r");

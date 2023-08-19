@@ -1,10 +1,11 @@
 LISTA = lista/lista.c
+PERSON = person/person.c
 
 CLIENT_PATH = client/client.c
 SERVER_PATH = server/server.c
 
-CLIENT_OBJS = $(LISTA:.c=.o)
-SERVER_OBJS = $(LISTA:.c=.o)
+CLIENT_OBJS = $(LISTA:.c=.o) $(PERSON:.c=.o)
+SERVER_OBJS = $(LISTA:.c=.o) $(PERSON:.c=.o)
 
 all: comp_rpc comp_client comp_server
 

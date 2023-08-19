@@ -44,6 +44,12 @@ notebook_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 		local = (char *(*)(char *, struct svc_req *)) lookup_1_svc;
 		break;
 
+	case RESET:
+		_xdr_argument = (xdrproc_t) xdr_void;
+		_xdr_result = (xdrproc_t) xdr_void;
+		local = (char *(*)(char *, struct svc_req *)) reset_1_svc;
+		break;
+
 	default:
 		svcerr_noproc (transp);
 		return;

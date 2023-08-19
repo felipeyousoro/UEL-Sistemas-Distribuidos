@@ -31,6 +31,9 @@ extern  void * insert_1_svc(person_data *, struct svc_req *);
 #define LOOKUP 2
 extern  person_data * lookup_1(person_data *, CLIENT *);
 extern  person_data * lookup_1_svc(person_data *, struct svc_req *);
+#define RESET 3
+extern  void * reset_1(void *, CLIENT *);
+extern  void * reset_1_svc(void *, struct svc_req *);
 extern int notebook_prog_1_freeresult (SVCXPRT *, xdrproc_t, caddr_t);
 
 #else /* K&R C */
@@ -40,6 +43,9 @@ extern  void * insert_1_svc();
 #define LOOKUP 2
 extern  person_data * lookup_1();
 extern  person_data * lookup_1_svc();
+#define RESET 3
+extern  void * reset_1();
+extern  void * reset_1_svc();
 extern int notebook_prog_1_freeresult ();
 #endif /* K&R C */
 
