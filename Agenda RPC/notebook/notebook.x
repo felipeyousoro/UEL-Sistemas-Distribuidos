@@ -2,12 +2,12 @@
 #define VERSION_NUMBER 1
 
 #define NAME_SIZE 128
-#define STREET_SIZE 128
+#define ADDRESS_SIZE 128
 #define PHONE_SIZE 128
 
 struct person_data {
     char name[NAME_SIZE];
-    char street[STREET_SIZE];
+    char address[ADDRESS_SIZE];
     char phone[PHONE_SIZE];
 };
 

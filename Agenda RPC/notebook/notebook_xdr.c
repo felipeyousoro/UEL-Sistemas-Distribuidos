@@ -14,7 +14,7 @@ xdr_person_data (XDR *xdrs, person_data *objp)
 	 if (!xdr_vector (xdrs, (char *)objp->name, 128,
 		sizeof (char), (xdrproc_t) xdr_char))
 		 return FALSE;
-	 if (!xdr_vector (xdrs, (char *)objp->street, 128,
+	 if (!xdr_vector (xdrs, (char *)objp->address, 128,
 		sizeof (char), (xdrproc_t) xdr_char))
 		 return FALSE;
 	 if (!xdr_vector (xdrs, (char *)objp->phone, 128,

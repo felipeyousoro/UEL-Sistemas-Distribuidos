@@ -24,24 +24,24 @@ void initialize(char *data, CLIENT *clnt) {
 }
 
 void build_and_insert(CLIENT *clnt) {
-    char name[NAME_SIZE], street[STREET_SIZE], phone[PHONE_SIZE];
+    char name[NAME_SIZE], address[ADDRESS_SIZE], phone[PHONE_SIZE];
 
     fprintf(stdout, "Type the name: ");
     fflush(stdout);
     fgets(name, NAME_SIZE, stdin);
     name[strlen(name) - 1] = '\0';
 
-    fprintf(stdout, "Type the street: ");
+    fprintf(stdout, "Type the address: ");
     fflush(stdout);
-    fgets(street, STREET_SIZE, stdin);
-    street[strlen(street) - 1] = '\0';
+    fgets(address, ADDRESS_SIZE, stdin);
+    address[strlen(address) - 1] = '\0';
 
     fprintf(stdout, "Type the phone: ");
     fflush(stdout);
     fgets(phone, PHONE_SIZE, stdin);
     phone[strlen(phone) - 1] = '\0';
 
-    person_data *p = person_data_create(name, street, phone);
+    person_data *p = person_data_create(name, address, phone);
 
     insert(p, clnt);
 

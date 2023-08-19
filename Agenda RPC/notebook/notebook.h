@@ -16,7 +16,7 @@ extern "C" {
 
 struct person_data {
 	char name[128];
-	char street[128];
+	char address[128];
 	char phone[128];
 };
 typedef struct person_data person_data;

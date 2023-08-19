@@ -14,7 +14,7 @@ void *insert_1_svc(person_data *p, struct svc_req *rqstp) {
     FILE *fphone = fopen(DATABASE_PHONE, "a");
 
     fprintf(fname, "%s\n", p->name);
-    fprintf(faddress, "%s\n", p->street);
+    fprintf(faddress, "%s\n", p->address);
     fprintf(fphone, "%s\n", p->phone);
 
     fclose(fname);
@@ -76,9 +76,9 @@ static void build_person_data(person_data *p, long index) {
 
     int i = 0;
     while (1) {
-        char name[NAME_SIZE], address[STREET_SIZE], phone[PHONE_SIZE];
+        char name[NAME_SIZE], address[ADDRESS_SIZE], phone[PHONE_SIZE];
         fgets(name, NAME_SIZE, fname);
-        fgets(address, STREET_SIZE, faddress);
+        fgets(address, ADDRESS_SIZE, faddress);
         fgets(phone, PHONE_SIZE, fphone);
         if (feof(fname) || feof(faddress) || feof(fphone)) break;
 
@@ -88,7 +88,7 @@ static void build_person_data(person_data *p, long index) {
             phone[strlen(phone) - 1] = '\0';
 
             strcpy(p->name, name);
-            strcpy(p->street, address);
+            strcpy(p->address, address);
             strcpy(p->phone, phone);
             break;
         }
@@ -112,7 +112,7 @@ person_data* lookup_1_svc(person_data *p, struct svc_req *rqstp) {
     }
     else {
         strcpy(result.name, "NOT FOUND");
-        strcpy(result.street, "NOT FOUND");
+        strcpy(result.address, "NOT FOUND");
         strcpy(result.phone, "NOT FOUND");
     }
 
