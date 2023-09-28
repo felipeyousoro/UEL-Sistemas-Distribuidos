@@ -6,8 +6,7 @@ from Peer import peer as pr
 from Client import client as clnt
 
 HOSTNAME = socket.gethostname()
-IP = socket.gethostbyname_ex(HOSTNAME)[2]
-PORT = 3000
+IP = socket.gethostbyname_ex(HOSTNAME)[2][0]
 
 def get_peers(file: str) -> list:
     peers = []
@@ -20,16 +19,27 @@ def get_peers(file: str) -> list:
     return peers
 
 def usr1():
-    client = clnt.Client(IP[0], 'client1')
+    client = clnt.Client(IP, 'client1')
 
     peers = get_peers('test1.txt')
 
     threading.Thread(target=client.run).start()
-    time.sleep(1)
 
     for peer in peers:
-        threading.Thread(target=client.add_peer, args=(peer, 'numero enviado por 1')).start()
+        client.add_peer(peer)
+
+def usr2():
+    client = clnt.Client(socket.gethostbyname_ex(HOSTNAME)[2][1], 'client2')
+
+    peers = get_peers('test2.txt')
+
+    threading.Thread(target=client.run).start()
+
+    for peer in peers:
+        client.add_peer(peer)
 
 if __name__ == '__main__':
-    threading.Thread(target=usr1).start()
+    usr1()
+    # time.sleep(1)
+    # usr2()
 

@@ -5,48 +5,81 @@ from Peer import peer as pr
 
 
 class Client:
+    LISTENING_PORT = 3000
+    BEAT_PORT = 3001
+
     def __init__(self, ip: str, name: str = 'client'):
         self.name: str = name
         self.ip: str = ip
-        self.listening_port: int = 3000
 
-        self.peer_list: list = []
+        self.peer_list: list[pr.Peer] = []
 
-        # Listening port
-        self.listening_socket: socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.listening_socket.bind((self.ip, self.listening_port))
+        # Listening socket
+        self.listening_socket: socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.listening_socket.bind((self.ip, Client.LISTENING_PORT))
 
-    def add_peer(self, peer: pr.Peer, msg: str = ''):
+        # Heartbeat socket
+        self.beat_socket: socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.beat_socket.bind((self.ip, Client.BEAT_PORT))
+
+    def add_peer(self, peer: pr.Peer):
         self.peer_list.append(peer)
-        self.send_msg(peer, msg)
 
-    def handle_connection(self, conn, addr):
+    def print_peers(self):
+        for peer in self.peer_list:
+            print(peer)
+
+    # def send_msg(self, peer: pr.Peer, msg: str):
+    #     n: int = 0
+    #     while True:
+    #         try:
+    #             peer_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    #             peer_socket.sendto(msg.encode('utf-8'), (peer.ip, Client.LISTENING_PORT))
+    #             time.sleep(5)
+    #         except:
+    #             continue
+
+    def send_heartbeat(self):
         while True:
-            data = conn.recv(1024)
+            for peer in self.peer_list:
+                # HBT-01 code means check if peer is online
+                print(
+                    f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] Sending heartbeat to {peer.ip}:{Client.BEAT_PORT}')
+                peer.online = False
+                try:
+                    self.beat_socket.sendto('HBT-01'.encode('utf-8'), (peer.ip, Client.BEAT_PORT))
+                except:
+                    print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] ERROR: sending heartbeat to {peer.ip}:{Client.BEAT_PORT}')
+                    pass
+            time.sleep(5)
 
-            if not data: continue
-
-            print('msg lida por {}:'.format(self.name))
-            print(data.decode('utf-8'))
-
-    def send_msg(self, peer: pr.Peer, msg: str):
-        n: int = 0
+    def check_heartbeat(self):
         while True:
             try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.connect((peer.ip, 3000))
-                while True:
-                    n += 1
-                    s.send((msg + ': ' + str(n)).encode('utf-8'))
-                    time.sleep(5)
-            except Exception as e:
-                print(f'falha ao enviar mensagem para {peer.name}: {str(e)}')
-                time.sleep(10)
+                msg, addr = self.beat_socket.recvfrom(1024)
+                if msg.decode('utf-8') == 'HBT-01':
+                    # HBT-02 code means peer is online
+                    try:
+                        self.beat_socket.sendto('HBT-02'.encode('utf-8'), addr)
+                    except:
+                        pass
+                elif msg.decode('utf-8') == 'HBT-02':
+                    print(
+                        f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] Received heartbeat from {addr[0]}:{Client.BEAT_PORT}')
+                    for peer in self.peer_list:
+                        if peer.ip == addr[0]:
+                            peer.online = True
+            except:
+                pass
+
+    def receive_message(self):
+        while True:
+            msg, addr = self.listening_socket.recvfrom(1024)
+            print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] {msg.decode("utf-8")}')
 
     def run(self):
-        print('ESCUTANDO EM {}'.format(self.ip))
-        self.listening_socket.listen()
-        while True:
-            conn, addr = self.listening_socket.accept()
-            threading.Thread(target=self.handle_connection, args=(conn, addr)).start()
-
+        print(f'Client running on {self.ip}:{Client.LISTENING_PORT}')
+        print(f'Client heartbeat running on {self.ip}:{Client.BEAT_PORT}')
+        threading.Thread(target=self.check_heartbeat).start()
+        threading.Thread(target=self.send_heartbeat).start()
+        threading.Thread(target=self.receive_message).start()
