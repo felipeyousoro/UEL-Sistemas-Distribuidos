@@ -29,16 +29,6 @@ class Client:
         for peer in self.peer_list:
             print(peer)
 
-    # def send_msg(self, peer: pr.Peer, msg: str):
-    #     n: int = 0
-    #     while True:
-    #         try:
-    #             peer_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    #             peer_socket.sendto(msg.encode('utf-8'), (peer.ip, Client.LISTENING_PORT))
-    #             time.sleep(5)
-    #         except:
-    #             continue
-
     def send_heartbeat(self):
         while True:
             for peer in self.peer_list:
@@ -72,6 +62,16 @@ class Client:
             except:
                 pass
 
+    def send_message(self):
+        while True:
+            msg = input()
+            for peer in self.peer_list:
+                if peer.online:
+                    try:
+                        self.listening_socket.sendto(f'{self.name}: {msg}'.encode('utf-8'), (peer.ip, Client.LISTENING_PORT))
+                    except:
+                        pass
+
     def receive_message(self):
         while True:
             msg, addr = self.listening_socket.recvfrom(1024)
@@ -83,3 +83,4 @@ class Client:
         threading.Thread(target=self.check_heartbeat).start()
         threading.Thread(target=self.send_heartbeat).start()
         threading.Thread(target=self.receive_message).start()
+        threading.Thread(target=self.send_message).start()
