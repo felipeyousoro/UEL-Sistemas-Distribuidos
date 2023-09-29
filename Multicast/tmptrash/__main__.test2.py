@@ -7,7 +7,7 @@ from Client import client as clnt
 
 HOSTNAME = socket.gethostname()
 IP = socket.gethostbyname_ex(HOSTNAME)[2][1]
-
+print(IP)
 if __name__ == '__main__':
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind((IP, 3001))

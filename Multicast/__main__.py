@@ -31,7 +31,7 @@ def usr1():
 def usr2():
     client = clnt.Client(socket.gethostbyname_ex(HOSTNAME)[2][1], 'client2')
 
-    peers = get_peers('test2.txt')
+    peers = get_peers('tmptrash/test2.txt')
 
     threading.Thread(target=client.run).start()
 
