@@ -4,5 +4,7 @@ class Peer:
         self.ip: str = ip
         self.online: bool = False
 
+        self.last_beat_answered: float = 0
+
     def __str__(self):
         return f'Peer: {self.name} - IP: {self.ip} - Online: {self.online}'
