@@ -13,6 +13,9 @@ class Client:
     MESSAGE_DELAY_SECONDS = 0
     MAX_RESEND_TRIES = 3
 
+    PRINT_HEARTBEAT = False
+    PRINT_ACK = False
+
     def __init__(self, ip: str, name: str = 'client'):
         self.name: str = name
         self.ip: str = ip
@@ -34,7 +37,6 @@ class Client:
     def add_peer(self, peer: pr.Peer):
         self.peer_dictionary[peer.name] = peer
 
-
     def print_peers(self):
         for peer in self.peer_dictionary.values():
             print(peer)
@@ -43,12 +45,15 @@ class Client:
         while True:
             for peer in self.peer_dictionary.values():
                 # HBT-01 code means check if peer is online
-                print(
-                    f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] Sending heartbeat to {peer.ip}:{Client.BEAT_PORT}')
+                if (Client.PRINT_HEARTBEAT):
+                    print(
+                        f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] Sending heartbeat to {peer.ip}:{Client.BEAT_PORT}')
                 try:
                     self.beat_socket.sendto('HBT-01'.encode('utf-8'), (peer.ip, Client.BEAT_PORT))
                 except:
-                    print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] ERROR: sending heartbeat to {peer.ip}:{Client.BEAT_PORT}')
+                    if (Client.PRINT_HEARTBEAT):
+                        print(
+                            f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] ERROR: sending heartbeat to {peer.ip}:{Client.BEAT_PORT}')
                     pass
             time.sleep(5)
 
@@ -64,8 +69,9 @@ class Client:
                     except:
                         pass
                 elif msg.decode('utf-8') == 'HBT-02':
-                    print(
-                        f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] Received heartbeat from {addr[0]}:{Client.BEAT_PORT}')
+                    if (Client.PRINT_HEARTBEAT):
+                        print(
+                            f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] Received heartbeat from {addr[0]}:{Client.BEAT_PORT}')
                     if addr[0] in self.peer_dictionary.keys():
                         self.peer_dictionary[addr[0]].last_beat_answered = time.time()
             except:
@@ -80,40 +86,77 @@ class Client:
                 else:
                     peer.online = True
 
-    def send_message(self):
-        #use messaging socket and set timeout for acks
-        self.messaging_socket.settimeout(Client.TIMEOUT_SECONDS)
+    def menu(self):
+        print('Choose an option:')
+        print('1 - Print connected peers, whether they\'re online or not')
+        print('2 - Send message to all connected peers')
+        print('3 - Enable/Disable heartbeat messages')
+        print('4 - Set sending message delay')
+        print('5 - Set timeout for ACKs')
+        print('6 - Set max number of resend tries')
+        print('Else - Exit')
         while True:
-            msg = input()
-            msg = f'{self.name}: {msg}'
-            for peer in self.peer_dictionary.values():
-                for i in range(Client.MAX_RESEND_TRIES):
-                    try:
-                        self.messaging_socket.sendto(msg.encode('utf-8'), (peer.ip, Client.LISTENING_PORT))
-                        ack, addr = self.messaging_socket.recvfrom(1024)
-                        if ack.decode('utf-8') == 'ACK':
-                            print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] Message sent to {peer.name}')
-                            break
-                    except:
-                        print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] ERROR: Message not sent to {peer.name}')
-                        pass
+            option = input()
+            if option == '1':
+                self.print_peers()
+            elif option == '2':
+                self.send_message()
+            elif option == '3':
+                Client.PRINT_HEARTBEAT = not Client.PRINT_HEARTBEAT
+            elif option == '4':
+                print('Current delay: ', Client.MESSAGE_DELAY_SECONDS)
+                Client.MESSAGE_DELAY_SECONDS = int(input('Delay in seconds: '))
+            elif option == '5':
+                print('Current timeout: ', Client.TIMEOUT_SECONDS)
+                Client.TIMEOUT_SECONDS = int(input('Timeout in seconds: '))
+            elif option == '6':
+                print('Current max resend tries: ', Client.MAX_RESEND_TRIES)
+                Client.MAX_RESEND_TRIES = int(input('Max resend tries: '))
+            elif option == '7':
+                Client.PRINT_ACK = not Client.PRINT_ACK
+            else:
+                break
 
-    def receive_message(self):
-        while True:
-            msg, addr = self.listening_socket.recvfrom(1024)
-            print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] {msg.decode("utf-8")}')
-            time.sleep(Client.MESSAGE_DELAY_SECONDS)
+
+def send_message(self):
+    self.messaging_socket.settimeout(Client.TIMEOUT_SECONDS)
+
+    msg = input()
+    msg = f'{self.name}: {msg}'
+    for peer in self.peer_dictionary.values():
+        for i in range(Client.MAX_RESEND_TRIES):
             try:
-                self.listening_socket.sendto('ACK'.encode('utf-8'), addr)
+                self.messaging_socket.sendto(msg.encode('utf-8'), (peer.ip, Client.LISTENING_PORT))
+                ack, addr = self.messaging_socket.recvfrom(1024)
+                if ack.decode('utf-8') == 'ACK':
+                    if (Client.PRINT_ACK):
+                        print(
+                            f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] Message sent to {peer.name}')
+                    break
             except:
+                if (Client.PRINT_ACK):
+                    print(
+                        f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] ERROR: Message not sent to {peer.name}')
                 pass
 
-    def run(self):
-        print(f'Client running on {self.ip}:{Client.LISTENING_PORT}')
-        print(f'Client heartbeat running on {self.ip}:{Client.BEAT_PORT}')
-        threading.Thread(target=self.listen_heartbeat).start()
-        threading.Thread(target=self.send_heartbeat).start()
-        threading.Thread(target=self.receive_message).start()
-        threading.Thread(target=self.check_peers).start()
 
-        self.send_message()
+def receive_message(self):
+    while True:
+        msg, addr = self.listening_socket.recvfrom(1024)
+        print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] {msg.decode("utf-8")}')
+        time.sleep(Client.MESSAGE_DELAY_SECONDS)
+        try:
+            self.listening_socket.sendto('ACK'.encode('utf-8'), addr)
+        except:
+            pass
+
+
+def run(self):
+    print(f'Client running on {self.ip}:{Client.LISTENING_PORT}')
+    print(f'Client heartbeat running on {self.ip}:{Client.BEAT_PORT}')
+    threading.Thread(target=self.listen_heartbeat).start()
+    threading.Thread(target=self.send_heartbeat).start()
+    threading.Thread(target=self.receive_message).start()
+    threading.Thread(target=self.check_peers).start()
+
+    self.menu()
