@@ -7,6 +7,7 @@ from Peer import peer as pr
 class Client:
     LISTENING_PORT = 3000
     BEAT_PORT = 3001
+    MESSAGING_PORT = 3002
 
     TIMEOUT_SECONDS = 5
     MESSAGE_DELAY_SECONDS = 0
@@ -24,7 +25,7 @@ class Client:
 
         # Messaging socket
         self.messaging_socket: socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.messaging_socket.bind((self.ip, Client.LISTENING_PORT))
+        self.messaging_socket.bind((self.ip, Client.MESSAGING_PORT))
 
         # Heartbeat socket
         self.beat_socket: socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -88,13 +89,13 @@ class Client:
             for peer in self.peer_dictionary.values():
                 for i in range(Client.MAX_RESEND_TRIES):
                     try:
-                        self.messaging_socket.sendto(msg.encode('utf-8'), (peer.ip, Client.LISTENING_PORT))
+                        self.messaging_socket.sendto(msg.encode('utf-8'), (peer.ip, Client.MESSAGING_PORT))
                         ack, addr = self.messaging_socket.recvfrom(1024)
                         if ack.decode('utf-8') == 'ACK':
                             print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] Message sent to {peer.name}')
                             break
                     except:
-                        #print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] ERROR: Message not sent to {peer.name}')
+                        print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] ERROR: Message not sent to {peer.name}')
                         pass
 
     def receive_message(self):
