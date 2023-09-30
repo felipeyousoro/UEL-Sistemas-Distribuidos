@@ -117,46 +117,43 @@ class Client:
             else:
                 break
 
+    def send_message(self):
+        self.messaging_socket.settimeout(Client.TIMEOUT_SECONDS)
 
-def send_message(self):
-    self.messaging_socket.settimeout(Client.TIMEOUT_SECONDS)
-
-    msg = input('Message: ')
-    msg = f'{self.name}: {msg}'
-    for peer in self.peer_dictionary.values():
-        for i in range(Client.MAX_RESEND_TRIES):
-            try:
-                self.messaging_socket.sendto(msg.encode('utf-8'), (peer.ip, Client.LISTENING_PORT))
-                ack, addr = self.messaging_socket.recvfrom(1024)
-                if ack.decode('utf-8') == 'ACK':
+        msg = input('Message: ')
+        msg = f'{self.name}: {msg}'
+        for peer in self.peer_dictionary.values():
+            for i in range(Client.MAX_RESEND_TRIES):
+                try:
+                    self.messaging_socket.sendto(msg.encode('utf-8'), (peer.ip, Client.LISTENING_PORT))
+                    ack, addr = self.messaging_socket.recvfrom(1024)
+                    if ack.decode('utf-8') == 'ACK':
+                        if (Client.PRINT_ACK):
+                            print(
+                                f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] Message sent to {peer.name}')
+                        break
+                except:
                     if (Client.PRINT_ACK):
                         print(
-                            f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] Message sent to {peer.name}')
-                    break
+                            f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] ERROR: Message not sent to {peer.name}')
+                    pass
+
+    def receive_message(self):
+        while True:
+            msg, addr = self.listening_socket.recvfrom(1024)
+            print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] {msg.decode("utf-8")}')
+            time.sleep(Client.MESSAGE_DELAY_SECONDS)
+            try:
+                self.listening_socket.sendto('ACK'.encode('utf-8'), addr)
             except:
-                if (Client.PRINT_ACK):
-                    print(
-                        f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] ERROR: Message not sent to {peer.name}')
                 pass
 
+    def run(self):
+        print(f'Client running on {self.ip}:{Client.LISTENING_PORT}')
+        print(f'Client heartbeat running on {self.ip}:{Client.BEAT_PORT}')
+        threading.Thread(target=self.listen_heartbeat).start()
+        threading.Thread(target=self.send_heartbeat).start()
+        threading.Thread(target=self.receive_message).start()
+        threading.Thread(target=self.check_peers).start()
 
-def receive_message(self):
-    while True:
-        msg, addr = self.listening_socket.recvfrom(1024)
-        print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] {msg.decode("utf-8")}')
-        time.sleep(Client.MESSAGE_DELAY_SECONDS)
-        try:
-            self.listening_socket.sendto('ACK'.encode('utf-8'), addr)
-        except:
-            pass
-
-
-def run(self):
-    print(f'Client running on {self.ip}:{Client.LISTENING_PORT}')
-    print(f'Client heartbeat running on {self.ip}:{Client.BEAT_PORT}')
-    threading.Thread(target=self.listen_heartbeat).start()
-    threading.Thread(target=self.send_heartbeat).start()
-    threading.Thread(target=self.receive_message).start()
-    threading.Thread(target=self.check_peers).start()
-
-    self.menu()
+        self.menu()
