@@ -89,7 +89,7 @@ class Client:
             for peer in self.peer_dictionary.values():
                 for i in range(Client.MAX_RESEND_TRIES):
                     try:
-                        self.messaging_socket.sendto(msg.encode('utf-8'), (peer.ip, Client.MESSAGING_PORT))
+                        self.messaging_socket.sendto(msg.encode('utf-8'), (peer.ip, Client.LISTENING_PORT))
                         ack, addr = self.messaging_socket.recvfrom(1024)
                         if ack.decode('utf-8') == 'ACK':
                             print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] Message sent to {peer.name}')
