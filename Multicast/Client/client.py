@@ -94,6 +94,7 @@ class Client:
         print('4 - Set sending message delay')
         print('5 - Set timeout for ACKs')
         print('6 - Set max number of resend tries')
+        print('7 - Enable/Disable ACK messages')
         print('Else - Exit')
         while True:
             option = input()
