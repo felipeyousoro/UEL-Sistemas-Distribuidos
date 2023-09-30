@@ -11,6 +11,8 @@ class Client:
 
     TIMEOUT_SECONDS = 5
     MESSAGE_DELAY_SECONDS = 0
+    HEARTBEAT_SEND_DELAY_SECONDS = 3
+    HEARTBEAT_RECEIVE_DELAY_SECONDS = 3
     MAX_RESEND_TRIES = 3
 
     PRINT_HEARTBEAT = False
@@ -55,7 +57,7 @@ class Client:
                         print(
                             f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] ERROR: sending heartbeat to {peer.ip}:{Client.BEAT_PORT}')
                     pass
-            time.sleep(5)
+            time.sleep(Client.HEARTBEAT_SEND_DELAY_SECONDS)
 
     def listen_heartbeat(self):
         while True:
@@ -64,7 +66,6 @@ class Client:
                 if msg.decode('utf-8') == 'HBT-01':
                     # HBT-02 code means peer is online
                     try:
-                        time.sleep(Client.MESSAGE_DELAY_SECONDS)
                         self.beat_socket.sendto('HBT-02'.encode('utf-8'), addr)
                     except:
                         pass
