@@ -13,7 +13,8 @@ class Client:
 
     HEARTBEAT_SEND_DELAY_SECONDS = 3
 
-    ACK_SEND_DELAY_SECONDS = 3
+    MESSAGE_SEND_DELAY_SECONDS = 0
+    ACK_SEND_DELAY_SECONDS = 0
 
     MAX_RESEND_TRIES = 3
 
@@ -39,6 +40,7 @@ class Client:
         self.beat_socket.bind((self.ip, Client.BEAT_PORT))
 
     def add_peer(self, peer: pr.Peer):
+        peer.delta_time = Client.TIMEOUT_LIMIT_SECONDS
         self.peer_dictionary[peer.ip] = peer
 
     def print_peers(self):
@@ -75,7 +77,7 @@ class Client:
         while True:
             current_time = time.time()
             for peer in self.peer_dictionary.values():
-                if current_time - peer.last_beat_answered > Client.TIMEOUT_SECONDS:
+                if current_time - peer.last_beat_answered > Client.TIMEOUT_LIMIT_SECONDS:
                     peer.online = False
                 else:
                     peer.online = True
@@ -117,6 +119,7 @@ class Client:
         msg = input('Message: ')
         msg = f'{self.name}: {msg}'
         for peer in self.peer_dictionary.values():
+            time.sleep(Client.MESSAGE_SEND_DELAY_SECONDS)
             for i in range(Client.MAX_RESEND_TRIES):
                 try:
                     self.messaging_socket.sendto(msg.encode('utf-8'), (peer.ip, Client.LISTENING_PORT))
