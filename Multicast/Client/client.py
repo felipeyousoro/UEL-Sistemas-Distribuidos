@@ -9,9 +9,9 @@ class Client:
     BEAT_PORT = 3001
     MESSAGING_PORT = 3002
 
-    TIMEOUT_LIMIT_SECONDS = 5
+    TIMEOUT_LIMIT_SECONDS = 10
 
-    HEARTBEAT_SEND_DELAY_SECONDS = 3
+    HEARTBEAT_SEND_DELAY_SECONDS = 0, 1
 
     MESSAGE_SEND_DELAY_SECONDS = 0
     ACK_SEND_DELAY_SECONDS = 0
@@ -72,12 +72,11 @@ class Client:
                     print(
                         f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] Received heartbeat from {addr[0]}:{Client.BEAT_PORT}')
 
-
     def check_peers(self):
         while True:
             current_time = time.time()
             for peer in self.peer_dictionary.values():
-                if current_time - peer.last_beat_answered > Client.TIMEOUT_LIMIT_SECONDS:
+                if current_time - peer.last_beat_answered > 2 * peer.delta_time:
                     peer.online = False
                 else:
                     peer.online = True
@@ -118,17 +117,25 @@ class Client:
 
         msg = input('Message: ')
         msg = f'{self.name}: {msg}'
+
         for peer in self.peer_dictionary.values():
             time.sleep(Client.MESSAGE_SEND_DELAY_SECONDS)
+
             for i in range(Client.MAX_RESEND_TRIES):
                 try:
                     self.messaging_socket.sendto(msg.encode('utf-8'), (peer.ip, Client.LISTENING_PORT))
+
+                    sent_time = time.time()
+
                     ack, addr = self.messaging_socket.recvfrom(1024)
+
                     if ack.decode('utf-8') == 'ACK':
                         if (Client.PRINT_ACK):
                             print(
                                 f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] Message sent to {peer.name}')
+                            peer.delta_time = time.time() - sent_time
                         break
+
                 except:
                     if (Client.PRINT_ACK):
                         print(

@@ -4,6 +4,8 @@ class Peer:
         self.ip: str = ip
         self.online: bool = False
 
+        self.delta_time: float
+
         self.last_beat_answered: float = 0
 
     def __str__(self):
