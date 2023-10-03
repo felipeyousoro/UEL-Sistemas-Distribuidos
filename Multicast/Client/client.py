@@ -11,9 +11,9 @@ class Client:
 
     TIMEOUT_LIMIT_SECONDS: float = 5
 
-    HEARTBEAT_INTERVAL_SECONDS: float = 0
+    HEARTBEAT_INTERVAL_SECONDS: float = 3
 
-    APPLICATION_DELAY_SECONDS: float = 0.5
+    APPLICATION_DELAY_SECONDS: float = 1
 
     MAX_RESEND_TRIES = 3
 
@@ -21,7 +21,7 @@ class Client:
 
     def __init__(self, ip: str, name: str = 'client'):
         self.name: str = name
-        self.ip: str = '26.140.153.153'
+        self.ip: str = ip
 
         self.peer_dictionary: dict = {}
 
@@ -65,13 +65,16 @@ class Client:
 
     def listen_heartbeat(self):
         while True:
-            msg, addr = self.beat_socket.recvfrom(1024)
-            if msg.decode('utf-8') == 'HBT':
-                if addr[0] in self.peer_dictionary.keys():
-                    self.peer_dictionary[addr[0]].last_beat_answered = time.time()
-                if (Client.PRINT_DEBUG):
-                    print(
-                        f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] Received heartbeat from {addr[0]}:{Client.BEAT_PORT}')
+            try:
+                msg, addr = self.beat_socket.recvfrom(1024)
+                if msg.decode('utf-8') == 'HBT':
+                    if addr[0] in self.peer_dictionary.keys():
+                        self.peer_dictionary[addr[0]].last_beat_answered = time.time()
+                    if (Client.PRINT_DEBUG):
+                        print(
+                            f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] Received heartbeat from {addr[0]}:{Client.BEAT_PORT}')
+            except:
+                pass
 
     def check_peers(self):
         while True:
@@ -120,11 +123,11 @@ class Client:
         while True:
             msg, addr = self.listening_socket.recvfrom(1024)
 
+            time.sleep(Client.APPLICATION_DELAY_SECONDS)
+
             print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] {msg.decode("utf-8")}')
 
             try:
-
-                time.sleep(Client.APPLICATION_DELAY_SECONDS)
                 self.listening_socket.sendto('ACK'.encode('utf-8'), addr)
 
             except:
