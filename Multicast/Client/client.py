@@ -21,7 +21,7 @@ class Client:
 
     def __init__(self, ip: str, name: str = 'client'):
         self.name: str = name
-        self.ip: str = ip
+        self.ip: str = '26.140.153.153'
 
         self.peer_dictionary: dict = {}
 
@@ -122,8 +122,9 @@ class Client:
 
             print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] {msg.decode("utf-8")}')
 
-            time.sleep(Client.ACK_SEND_DELAY_SECONDS)
             try:
+
+                time.sleep(Client.APPLICATION_DELAY_SECONDS)
                 self.listening_socket.sendto('ACK'.encode('utf-8'), addr)
 
             except:
