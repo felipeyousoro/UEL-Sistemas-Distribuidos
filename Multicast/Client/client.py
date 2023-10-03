@@ -79,6 +79,7 @@ class Client:
                 if current_time - peer.last_beat_answered > 2 * peer.delta_time:
                     peer.online = False
                 else:
+                    peer.delta_time = current_time - peer.last_beat_answered
                     peer.online = True
 
     def menu(self):
@@ -133,7 +134,6 @@ class Client:
                         if (Client.PRINT_ACK):
                             print(
                                 f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] Message sent to {peer.name}')
-                            peer.delta_time = time.time() - sent_time
                         break
 
                 except:
