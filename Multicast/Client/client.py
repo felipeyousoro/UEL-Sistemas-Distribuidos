@@ -173,3 +173,8 @@ class Client:
         threading.Thread(target=self.check_peers).start()
 
         self.menu()
+
+        # Fecha os sockets
+        self.listening_socket.close()
+        self.messaging_socket.close()
+        self.beat_socket.close()
