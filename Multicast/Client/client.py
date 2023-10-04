@@ -139,14 +139,15 @@ class Client:
                 pass
 
     def menu(self):
-        print('Choose an option:')
-        print('1 - Print connected peers, whether they\'re online or not')
-        print('2 - Send message to all connected peers')
-        print('3 - Enable/Disable debug messages')
-        print('4 - Set heartbeat interval. Current: ' + str(Client.HEARTBEAT_INTERVAL_SECONDS))
-        print('5 - Set application delay (for ACKs). Current: ' + str(Client.APPLICATION_DELAY_SECONDS))
-        print('Else - Exit')
         while True:
+            print('Choose an option:')
+            print('1 - Print connected peers, whether they\'re online or not')
+            print('2 - Send message to all connected peers')
+            print('3 - Enable/Disable debug messages')
+            print('4 - Set heartbeat interval. Current: ' + str(Client.HEARTBEAT_INTERVAL_SECONDS))
+            print('5 - Set application delay (for ACKs). Current: ' + str(Client.APPLICATION_DELAY_SECONDS))
+            print('6 - Set default timeout limit. Current: ' + str(Client.TIMEOUT_LIMIT_SECONDS))
+            print('Else - Exit')
             option = input()
             if option == '1':
                 self.print_peers()
@@ -158,6 +159,8 @@ class Client:
                 Client.HEARTBEAT_INTERVAL_SECONDS = float(input('Interval: '))
             elif option == '5':
                 Client.APPLICATION_DELAY_SECONDS = float(input('Delay: '))
+            elif option == '6':
+                Client.TIMEOUT_LIMIT_SECONDS = float(input('Timeout: '))
             else:
                 break
 
