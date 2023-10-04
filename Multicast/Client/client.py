@@ -89,7 +89,6 @@ class Client:
         self.messaging_socket.settimeout(Client.TIMEOUT_LIMIT_SECONDS)
 
         msg = input('Message: ')
-        msg = f'{self.name}: {msg}'
 
         for peer in self.peer_dictionary.values():
             for i in range(Client.MAX_RESEND_TRIES):
