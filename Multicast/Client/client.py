@@ -13,7 +13,7 @@ class Client:
 
     HEARTBEAT_INTERVAL_SECONDS: float = 3
 
-    APPLICATION_DELAY_SECONDS: float = 1
+    APPLICATION_DELAY_SECONDS: float = 0
 
     MAX_RESEND_TRIES = 3
 
@@ -125,7 +125,13 @@ class Client:
 
             time.sleep(Client.APPLICATION_DELAY_SECONDS)
 
-            print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] {msg.decode("utf-8")}')
+            #check if it is in the peer list
+            if addr[0] not in self.peer_dictionary.keys():
+                continue
+
+            peer = self.peer_dictionary[addr[0]]
+
+            print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] Message from {peer.name}: {msg.decode("utf-8")}')
 
             try:
                 self.listening_socket.sendto('ACK'.encode('utf-8'), addr)
