@@ -13,6 +13,6 @@ class Peer:
 
     def __str__(self):
         if(self.last_beat_sent != 0):
-            return f'Peer: {self.name} - IP: {self.ip} - Online: {self.online} - Delta Time: {self.await_time:.5f} - Seconds since last beat: {time.time() - self.last_beat_sent:.5f}'
+            return f'Peer: {self.name} - IP: {self.ip} - Online: {self.online} - Await Time: {self.await_time:.5f} - Seconds since last beat: {time.time() - self.last_beat_sent:.5f}'
         else:
-            return f'Peer: {self.name} - IP: {self.ip} - Online: {self.online} - Delta Time: {self.await_time:.5f} - Seconds since last beat: Yet to receive first beat'
+            return f'Peer: {self.name} - IP: {self.ip} - Online: {self.online} - Await Time: {self.await_time:.5f} - Seconds since last beat: Yet to receive first beat'
