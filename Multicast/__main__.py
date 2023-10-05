@@ -6,13 +6,13 @@ from Peer import peer as pr
 from Client import client as clnt
 
 HOSTNAME = socket.gethostname()
-IP = '26.140.153.153'
+IP = '191.52.64.120'
 
 def get_peers(file: str) -> list:
     peers = []
     with open(file, 'r') as f:
         for line in f.readlines():
-            name, ip = line.split(' ')
+            ip, name = line.split(' ')
             ip = ip.replace('\n', '')
             peers.append(pr.Peer(name, ip))
 

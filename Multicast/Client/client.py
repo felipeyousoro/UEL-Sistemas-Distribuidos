@@ -9,15 +9,13 @@ class Client:
     BEAT_PORT = 3001
     MESSAGING_PORT = 3002
 
-    TIMEOUT_LIMIT_SECONDS: float = 5
+    TIMEOUT_LIMIT_SECONDS: float = 2
 
-    HEARTBEAT_INTERVAL_SECONDS: float = 3
+    HEARTBEAT_INTERVAL_SECONDS: float = 0.25
 
     APPLICATION_DELAY_SECONDS: float = 0
 
     MAX_RESEND_TRIES = 3
-
-    PRINT_DEBUG = False
 
     def __init__(self, ip: str, name: str = 'client'):
         self.name: str = name
@@ -51,16 +49,8 @@ class Client:
 
             for peer in self.peer_dictionary.values():
                 try:
-                    if (Client.PRINT_DEBUG):
-                        print(
-                            f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] Sending heartbeat to {peer.ip}:{Client.BEAT_PORT}')
-
                     self.beat_socket.sendto('HBT'.encode('utf-8'), (peer.ip, Client.BEAT_PORT))
-
                 except:
-                    if (Client.PRINT_DEBUG):
-                        print(
-                            f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] ERROR: sending heartbeat to {peer.ip}:{Client.BEAT_PORT}')
                     pass
 
     def listen_heartbeat(self):
@@ -70,24 +60,29 @@ class Client:
                 if msg.decode('utf-8') == 'HBT':
                     if addr[0] in self.peer_dictionary.keys():
                         self.peer_dictionary[addr[0]].last_beat_answered = time.time()
-                    if (Client.PRINT_DEBUG):
-                        print(
-                            f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] Received heartbeat from {addr[0]}:{Client.BEAT_PORT}')
             except:
                 pass
 
     def check_peers(self):
         while True:
             current_time = time.time()
+
             for peer in self.peer_dictionary.values():
                 if current_time - peer.last_beat_answered > 2 * peer.delta_time:
+                    if peer.online:
+                        print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] {peer.name} disconnected')
+
                     peer.delta_time = Client.TIMEOUT_LIMIT_SECONDS
                     peer.online = False
                 else:
+                    if not peer.online:
+                        print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] {peer.name} connected')
+
                     peer.online = True
 
     def send_message(self):
         self.messaging_socket.settimeout(0.01)
+
         while True:
             try:
                 msg, addr = self.messaging_socket.recvfrom(1024)
@@ -100,13 +95,15 @@ class Client:
             self.messaging_socket.settimeout(2 * peer.delta_time)
 
             for i in range(Client.MAX_RESEND_TRIES):
+                if not peer.online:
+                    continue
+
                 try:
                     self.messaging_socket.sendto(msg.encode('utf-8'), (peer.ip, Client.LISTENING_PORT))
 
                     start_time = time.time()
 
                     ack, addr = self.messaging_socket.recvfrom(1024)
-
                     if ack.decode('utf-8') == 'ACK' and addr[0] == peer.ip:
                         elapsed_time = time.time() - start_time
 
@@ -114,16 +111,8 @@ class Client:
                             peer.delta_time = elapsed_time
                         else:
                             peer.delta_time = peer.delta_time / 2
-
-                        if Client.PRINT_DEBUG:
-                            print(
-                                f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] Message sent to {peer.name}')
-                    break
-
+                        break
                 except:
-                    if Client.PRINT_DEBUG:
-                        print(
-                            f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] ERROR: Message not sent to {peer.name}')
                     pass
 
     def receive_message(self):
@@ -141,7 +130,6 @@ class Client:
 
             try:
                 self.listening_socket.sendto('ACK'.encode('utf-8'), addr)
-
             except:
                 pass
 
