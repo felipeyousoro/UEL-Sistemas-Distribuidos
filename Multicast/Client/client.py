@@ -151,12 +151,10 @@ class Client:
             elif option == '2':
                 self.send_message()
             elif option == '3':
-                Client.PRINT_DEBUG = not Client.PRINT_DEBUG
-            elif option == '4':
                 Client.HEARTBEAT_INTERVAL_SECONDS = float(input('Interval: '))
-            elif option == '5':
+            elif option == '4':
                 Client.APPLICATION_DELAY_SECONDS = float(input('Delay: '))
-            elif option == '6':
+            elif option == '5':
                 Client.TIMEOUT_LIMIT_SECONDS = float(input('Timeout: '))
             else:
                 break
