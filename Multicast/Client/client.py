@@ -3,7 +3,6 @@ import threading
 import time
 from Peer import peer as pr
 
-
 class Client:
     LISTENING_PORT = 3000
     BEAT_PORT = 3001
@@ -95,7 +94,6 @@ class Client:
                     peer.await_time = Client.DEFAULT_AWAIT_TIME
                     peer.previous_beat_sent = 0
                     peer.last_beat_sent = 0
-                    peer.last_beat_processed = False
                     peer.online = False
                 else:
                     if not peer.online:
@@ -108,7 +106,7 @@ class Client:
                         # desconsiderando o tempo base (heartbeat).
                         #
                         # Caso contrário, o novo tempo de espera será a metade do tempo de espera atual.
-                        if peer.last_beat_sent - peer.previous_beat_sent > delta_t:
+                        if peer.last_beat_sent - peer.previous_beat_sent >= delta_t:
                             peer.await_time = (peer.last_beat_sent
                                                - peer.previous_beat_sent
                                                - Client.HEARTBEAT_INTERVAL_SECONDS)
@@ -168,7 +166,7 @@ class Client:
                         # Caso contrário, o novo tempo de espera será a metade
                         # do tempo de espera atual.
                         current_time = time.time()
-                        if current_time - msg_sent_time > delta_t:
+                        if current_time - msg_sent_time >= delta_t:
                             peer.await_time = (current_time
                                                - msg_sent_time
                                                - Client.HEARTBEAT_INTERVAL_SECONDS)

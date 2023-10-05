@@ -1,2 +1,2 @@
 191.52.64.158 komarchester
-191.52.64.166 rhuan
+26.63.64.96 pcdeskop
