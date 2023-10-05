@@ -123,13 +123,11 @@ class Client:
         while True:
             msg, addr = self.listening_socket.recvfrom(1024)
 
-            time.sleep(Client.APPLICATION_DELAY_SECONDS)
-
             if addr[0] not in self.peer_dictionary.keys() or not self.peer_dictionary[addr[0]].online:
                 continue
 
             peer = self.peer_dictionary[addr[0]]
-
+            time.sleep(Client.APPLICATION_DELAY_SECONDS)
             print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] Message from {peer.name}: {msg.decode("utf-8")}')
 
             try:
