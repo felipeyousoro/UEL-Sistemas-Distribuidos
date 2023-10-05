@@ -100,7 +100,7 @@ class Client:
 
                     ack, addr = self.messaging_socket.recvfrom(1024)
 
-                    if ack.decode('utf-8') == 'ACK':
+                    if ack.decode('utf-8') == 'ACK' and addr[0] == peer.ip:
                         elapsed_time = time.time() - start_time
 
                         if (elapsed_time > 2 * peer.delta_time):
