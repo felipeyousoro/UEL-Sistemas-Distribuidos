@@ -87,6 +87,13 @@ class Client:
                     peer.online = True
 
     def send_message(self):
+        self.messaging_socket.settimeout(0.01)
+        while True:
+            try:
+                msg, addr = self.messaging_socket.recvfrom(1024)
+            except:
+                break
+
         self.messaging_socket.settimeout(Client.TIMEOUT_LIMIT_SECONDS)
 
         msg = input('Message: ')
