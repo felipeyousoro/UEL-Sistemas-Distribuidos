@@ -1,3 +1,6 @@
+import time
+
+
 class Peer:
     def __init__(self, name: str, ip: str):
         self.name: str = name
@@ -9,4 +12,7 @@ class Peer:
         self.last_beat_answered: float = 0
 
     def __str__(self):
-        return f'Peer: {self.name} - IP: {self.ip} - Online: {self.online}'
+        if(self.last_beat_answered != 0):
+            return f'Peer: {self.name} - IP: {self.ip} - Online: {self.online} - Delta Time: {self.delta_time} - Seconds since last beat: {time.time() - self.last_beat_answered:.2f}'
+        else:
+            return f'Peer: {self.name} - IP: {self.ip} - Online: {self.online} - Delta Time: {self.delta_time} - Seconds since last beat: Yet to receive first beat'

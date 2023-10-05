@@ -81,6 +81,7 @@ class Client:
             current_time = time.time()
             for peer in self.peer_dictionary.values():
                 if current_time - peer.last_beat_answered > 2 * peer.delta_time:
+                    peer.delta_time = Client.TIMEOUT_LIMIT_SECONDS
                     peer.online = False
                 else:
                     peer.online = True
@@ -124,8 +125,7 @@ class Client:
 
             time.sleep(Client.APPLICATION_DELAY_SECONDS)
 
-            #check if it is in the peer list
-            if addr[0] not in self.peer_dictionary.keys():
+            if addr[0] not in self.peer_dictionary.keys() or not self.peer_dictionary[addr[0]].online:
                 continue
 
             peer = self.peer_dictionary[addr[0]]
@@ -143,10 +143,9 @@ class Client:
             print('Choose an option:')
             print('1 - Print connected peers, whether they\'re online or not')
             print('2 - Send message to all connected peers')
-            print('3 - Enable/Disable debug messages')
-            print('4 - Set heartbeat interval. Current: ' + str(Client.HEARTBEAT_INTERVAL_SECONDS))
-            print('5 - Set application delay (for ACKs). Current: ' + str(Client.APPLICATION_DELAY_SECONDS))
-            print('6 - Set default timeout limit. Current: ' + str(Client.TIMEOUT_LIMIT_SECONDS))
+            print('3 - Set heartbeat interval. Current: ' + str(Client.HEARTBEAT_INTERVAL_SECONDS))
+            print('4 - Set application delay (for ACKs). Current: ' + str(Client.APPLICATION_DELAY_SECONDS))
+            print('5 - Set default timeout limit. Current: ' + str(Client.TIMEOUT_LIMIT_SECONDS))
             print('Else - Exit')
             option = input()
             if option == '1':
