@@ -12,7 +12,7 @@ class Client:
     # Tempo padrão de espera para um peer
     DEFAULT_AWAIT_TIME: float = 2
 
-    HEARTBEAT_INTERVAL_SECONDS: float = 0.25
+    HEARTBEAT_INTERVAL_SECONDS: float = 2
 
     APPLICATION_DELAY_SECONDS: float = 0
 
@@ -49,6 +49,9 @@ class Client:
             # Intervalo entre cada beat.
             time.sleep(Client.HEARTBEAT_INTERVAL_SECONDS)
 
+            # Delay ARTIFICIAL (inserção de atraso no envio)
+            time.sleep(Client.APPLICATION_DELAY_SECONDS)
+
             for peer in self.peer_dictionary.values():
                 try:
                     self.beat_socket.sendto('HBT'.encode('utf-8'), (peer.ip, Client.BEAT_PORT))
@@ -59,6 +62,9 @@ class Client:
         while True:
             try:
                 msg, addr = self.beat_socket.recvfrom(1024)
+
+                # Delay ARTIFICIAL (inserção de atraso na resposta)
+                time.sleep(Client.APPLICATION_DELAY_SECONDS)
 
                 if msg.decode('utf-8') == 'HBT':
                     if addr[0] in self.peer_dictionary.keys():
@@ -141,9 +147,12 @@ class Client:
                     continue
 
                 try:
-                    self.messaging_socket.sendto(msg.encode('utf-8'), (peer.ip, Client.LISTENING_PORT))
-
                     msg_sent_time = time.time()
+
+                    # Delay ARTIFICIAL (inserção de atraso no envio)
+                    time.sleep(Client.APPLICATION_DELAY_SECONDS)
+
+                    self.messaging_socket.sendto(msg.encode('utf-8'), (peer.ip, Client.LISTENING_PORT))
 
                     ack, addr = self.messaging_socket.recvfrom(1024)
 
@@ -179,16 +188,16 @@ class Client:
             if addr[0] not in self.peer_dictionary.keys() or not self.peer_dictionary[addr[0]].online:
                 continue
 
-            peer = self.peer_dictionary[addr[0]]
-
             # Delay ARTIFICIAL (inserção de atraso na resposta)
             time.sleep(Client.APPLICATION_DELAY_SECONDS)
 
+            peer = self.peer_dictionary[addr[0]]
             print(
                 f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] {peer.name}: {msg.decode("utf-8")}')
 
             try:
                 # Tentativa de envio do ACK.
+                #
                 # Caso o envio falhe, é possível que a mensagem
                 # seja recebida novamente.
                 self.listening_socket.sendto('ACK'.encode('utf-8'), addr)
