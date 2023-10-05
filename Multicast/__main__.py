@@ -19,9 +19,9 @@ def get_peers(file: str) -> list:
     return peers
 
 if __name__ == '__main__':
-    client = clnt.Client(IP, 'client1')
+    client = clnt.Client(IP, 'client')
 
-    peers = get_peers('test1.txt')
+    peers = get_peers('peers.txt')
 
     threading.Thread(target=client.run).start()
 

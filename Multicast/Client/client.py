@@ -94,11 +94,11 @@ class Client:
             except:
                 break
 
-        self.messaging_socket.settimeout(Client.TIMEOUT_LIMIT_SECONDS)
-
         msg = input('Message: ')
 
         for peer in self.peer_dictionary.values():
+            self.messaging_socket.settimeout(2 * peer.delta_time)
+
             for i in range(Client.MAX_RESEND_TRIES):
                 try:
                     self.messaging_socket.sendto(msg.encode('utf-8'), (peer.ip, Client.LISTENING_PORT))
@@ -110,18 +110,18 @@ class Client:
                     if ack.decode('utf-8') == 'ACK' and addr[0] == peer.ip:
                         elapsed_time = time.time() - start_time
 
-                        if (elapsed_time > 2 * peer.delta_time):
+                        if elapsed_time >= peer.delta_time:
                             peer.delta_time = elapsed_time
-                        elif (elapsed_time < peer.delta_time):
+                        else:
                             peer.delta_time = peer.delta_time / 2
 
-                        if (Client.PRINT_DEBUG):
+                        if Client.PRINT_DEBUG:
                             print(
                                 f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] Message sent to {peer.name}')
                     break
 
                 except:
-                    if (Client.PRINT_DEBUG):
+                    if Client.PRINT_DEBUG:
                         print(
                             f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] ERROR: Message not sent to {peer.name}')
                     pass
@@ -134,7 +134,9 @@ class Client:
                 continue
 
             peer = self.peer_dictionary[addr[0]]
+
             time.sleep(Client.APPLICATION_DELAY_SECONDS)
+
             print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] Message from {peer.name}: {msg.decode("utf-8")}')
 
             try:
