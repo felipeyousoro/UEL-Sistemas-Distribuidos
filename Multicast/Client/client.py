@@ -159,14 +159,22 @@ class Client:
     def run(self):
         print(f'Client running on {self.ip}:{Client.LISTENING_PORT}')
         print(f'Client heartbeat running on {self.ip}:{Client.BEAT_PORT}')
-        threading.Thread(target=self.listen_heartbeat).start()
-        threading.Thread(target=self.send_heartbeat).start()
-        threading.Thread(target=self.receive_message).start()
-        threading.Thread(target=self.check_peers).start()
+
+        listen_heartbeat_thread = threading.Thread(target=self.listen_heartbeat)
+        listen_heartbeat_thread.daemon = True
+        listen_heartbeat_thread.start()
+
+        send_heartbeat_thread = threading.Thread(target=self.send_heartbeat)
+        send_heartbeat_thread.daemon = True
+        send_heartbeat_thread.start()
+
+        receive_message_thread = threading.Thread(target=self.receive_message)
+        receive_message_thread.daemon = True
+        receive_message_thread.start()
+
+        check_peers_thread = threading.Thread(target=self.check_peers)
+        check_peers_thread.daemon = True
+        check_peers_thread.start()
 
         self.menu()
 
-        # Fecha os sockets
-        self.listening_socket.close()
-        self.messaging_socket.close()
-        self.beat_socket.close()
