@@ -203,7 +203,7 @@ class Client:
             print('3 - Set heartbeat interval. Current: ' + str(Client.HEARTBEAT_INTERVAL_SECONDS))
             print('4 - Set application delay (for ACKs). Current: ' + str(Client.APPLICATION_DELAY_SECONDS))
             print('5 - Set default timeout limit. Current: ' + str(Client.DEFAULT_AWAIT_TIME))
-            print('Else - Exit')
+            print('6 - Exit')
             option = input()
             if option == '1':
                 self.print_peers()
@@ -215,8 +215,10 @@ class Client:
                 Client.APPLICATION_DELAY_SECONDS = float(input('Delay: '))
             elif option == '5':
                 Client.DEFAULT_AWAIT_TIME = float(input('Timeout: '))
-            else:
+            elif option == '6':
                 break
+            else:
+                print('Invalid option: ' + option)
 
     def run(self):
         print(f'Client running on {self.ip}:{Client.LISTENING_PORT}')
