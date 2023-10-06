@@ -10,6 +10,7 @@ class Peer:
         self.await_time: float = 0
         self.previous_beat_sent: float = 0
         self.last_beat_sent: float = 0
+        self.checked:bool = False
 
     def __str__(self):
         if(self.last_beat_sent != 0):

@@ -70,6 +70,7 @@ class Client:
                     if addr[0] in self.peer_dictionary.keys():
                         self.peer_dictionary[addr[0]].previous_beat_sent = self.peer_dictionary[addr[0]].last_beat_sent
                         self.peer_dictionary[addr[0]].last_beat_sent = time.time()
+                        self.peer_dictionary[addr[0]].checked = False
             except:
                 pass
 
@@ -110,12 +111,17 @@ class Client:
                         # desconsiderando o tempo base (heartbeat).
                         #
                         # Caso contrário, o novo tempo de espera será a metade do tempo de espera atual.
+                        if peer.checked:
+                            continue
+
                         if peer.last_beat_sent - peer.previous_beat_sent >= delta_t:
                             peer.await_time = (peer.last_beat_sent
                                                - peer.previous_beat_sent
                                                - Client.HEARTBEAT_INTERVAL_SECONDS)
                         else:
                             peer.await_time = peer.await_time / 2
+
+                        peer.checked = True
 
                     peer.online = True
 
