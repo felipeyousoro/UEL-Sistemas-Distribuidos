@@ -94,13 +94,13 @@ class Client:
                     # Se o peer for determinado que está offline,
                     # devemos resetá-lo para as configurações iniciais.
                     peer.await_time = Client.DEFAULT_AWAIT_TIME
-                    peer.previous_beat_sent = 0
-                    peer.last_beat_sent = 0
+                    peer.previous_beat_sent = 0.0
+                    peer.last_beat_sent = 0.0
                     peer.online = False
                 else:
                     if not peer.online:
                         print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] {peer.name} connected')
-                    elif peer.previous_beat_sent == 0:
+                    elif peer.previous_beat_sent == 0.0:
                         pass
                     else:
                         # Se esta online, atualizar o tempo de espera do peer.
@@ -139,6 +139,8 @@ class Client:
             delta_t = Client.HEARTBEAT_INTERVAL_SECONDS + peer.await_time
             self.messaging_socket.settimeout(delta_t)
 
+            msg_sent_time = time.time()
+
             # A mensagem será enviada para um peer N vezes
             # até que ele responda com um ACK. Caso nenhum
             # ACK seja recebido, a aplicação irá desistir
@@ -149,14 +151,14 @@ class Client:
                     continue
 
                 try:
-                    msg_sent_time = time.time()
-
                     # Delay ARTIFICIAL (inserção de atraso no envio)
                     time.sleep(Client.APPLICATION_DELAY_SECONDS)
 
                     self.messaging_socket.sendto(msg.encode('utf-8'), (peer.ip, Client.LISTENING_PORT))
 
                     ack, addr = self.messaging_socket.recvfrom(1024)
+
+                    time.sleep(Client.APPLICATION_DELAY_SECONDS)
 
                     # Confirmação de que o peer correto recebeu a mensagem.
                     if ack.decode('utf-8') == 'ACK' and addr[0] == peer.ip:
@@ -188,6 +190,7 @@ class Client:
                 #
                 # Caso o envio falhe, é possível que a mensagem
                 # seja recebida novamente.
+                time.sleep(Client.APPLICATION_DELAY_SECONDS)
                 self.listening_socket.sendto('ACK'.encode('utf-8'), addr)
             except:
                 pass
