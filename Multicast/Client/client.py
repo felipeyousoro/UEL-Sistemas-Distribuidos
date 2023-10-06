@@ -3,6 +3,7 @@ import threading
 import time
 from Peer import peer as pr
 
+
 class Client:
     LISTENING_PORT = 3000
     BEAT_PORT = 3001
@@ -87,7 +88,8 @@ class Client:
 
                 if current_time - peer.last_beat_sent > 2 * delta_t:
                     if peer.online:
-                        print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] {peer.name} disconnected')
+                        print(
+                            f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] {peer.name} disconnected. Time elapsed since last beat: {current_time - peer.last_beat_sent:.5f}')
 
                     # Se o peer for determinado que está offline,
                     # devemos resetá-lo para as configurações iniciais.
@@ -156,23 +158,8 @@ class Client:
 
                     # Confirmação de que o peer correto recebeu a mensagem.
                     if ack.decode('utf-8') == 'ACK' and addr[0] == peer.ip:
-                        # Devemos realizar uma lógica parecida com a do
-                        # heartbeat para atualizar o tempo de espera do peer.
-                        #
-                        # Caso o tempo de confirmação seja maior que o delta T,
-                        # então o novo tempo de espera será o tempo gasto para
-                        # receber o ACK, desconsiderando o tempo base (heartbeat).
-                        #
-                        # Caso contrário, o novo tempo de espera será a metade
-                        # do tempo de espera atual.
                         current_time = time.time()
-                        if current_time - msg_sent_time >= delta_t:
-                            peer.await_time = (current_time
-                                               - msg_sent_time
-                                               - Client.HEARTBEAT_INTERVAL_SECONDS)
-                        else:
-                            peer.await_time = peer.await_time / 2
-
+                        print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] ACK received from {peer.name} in {current_time - msg_sent_time:.5f} seconds')
                         break
                 except:
                     pass
