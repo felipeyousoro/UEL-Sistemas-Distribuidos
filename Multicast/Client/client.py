@@ -100,6 +100,8 @@ class Client:
                 else:
                     if not peer.online:
                         print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] {peer.name} connected')
+                    elif peer.previous_beat_sent == 0:
+                        pass
                     else:
                         # Se esta online, atualizar o tempo de espera do peer.
                         #
@@ -159,7 +161,8 @@ class Client:
                     # Confirmação de que o peer correto recebeu a mensagem.
                     if ack.decode('utf-8') == 'ACK' and addr[0] == peer.ip:
                         current_time = time.time()
-                        print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] ACK received from {peer.name} in {current_time - msg_sent_time:.5f} seconds')
+                        print(
+                            f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] ACK received from {peer.name} in {current_time - msg_sent_time:.5f} seconds')
                         break
                 except:
                     pass
