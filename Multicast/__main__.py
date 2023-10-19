@@ -6,7 +6,7 @@ from Peer import peer as pr
 from Client import client as clnt
 
 HOSTNAME = socket.gethostname()
-IP = '26.140.153.153'
+IP = '189.90.68.147'
 
 def get_peers(file: str) -> list:
     peers = []
