@@ -98,6 +98,7 @@ class Client:
                     peer.previous_beat_sent = 0.0
                     peer.last_beat_sent = 0.0
                     peer.online = False
+                    peer.checked = False
                 else:
                     if not peer.online:
                         print(f'[{time.strftime("%H:%M:%S", time.localtime(time.time()))}] {peer.name} connected')
@@ -207,7 +208,7 @@ class Client:
             print('1 - Print connected peers, whether they\'re online or not')
             print('2 - Send message to all connected peers')
             print('3 - Set heartbeat interval. Current: ' + str(Client.HEARTBEAT_INTERVAL_SECONDS))
-            print('4 - Set application delay (for ACKs). Current: ' + str(Client.APPLICATION_DELAY_SECONDS))
+            print('4 - Set application delay. Current: ' + str(Client.APPLICATION_DELAY_SECONDS))
             print('5 - Set default timeout limit. Current: ' + str(Client.DEFAULT_AWAIT_TIME))
             print('6 - Exit')
             option = input()
