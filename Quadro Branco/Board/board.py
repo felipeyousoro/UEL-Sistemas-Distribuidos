@@ -1,5 +1,12 @@
-class WhiteBoard:
-    def __init__(self, height=256, width=256, draw_color=(0, 0, 0)):
+import random
+
+import pygame
+
+from Circle import circle as c
+from Connection import connection as conn
+
+class Board:
+    def __init__(self, connection: conn.Connection, height=256, width=256, draw_color=(0, 0, 0)):
         pygame.init()
 
         self.height = height
@@ -15,6 +22,8 @@ class WhiteBoard:
 
         self.circles: list[c.Circle] = []
 
+        self.connection = connection
+
     def begin(self):
         active_circle = -1
 
@@ -23,7 +32,7 @@ class WhiteBoard:
 
             for circle in self.circles:
                 pygame.draw.circle(self.screen, circle.color, (circle.x, circle.y), circle.r, width=circle.width)
-                print(circle)
+                #print(circle)
 
             pygame.display.flip()
 
@@ -50,7 +59,7 @@ class WhiteBoard:
                                     active_circle = num
                                 break
                         else:
-                            self.circles.append(c.Circle(position[0], position[1], 20, 5, self.draw_color))
+                            self.circles.append(c.Circle(0, position[0], position[1], 20, 5, self.draw_color))
                     elif event.button == 3:
                         for num, circle in enumerate(self.circles):
                             if circle.isPointInside(position[0], position[1]) and not circle.locked:
@@ -65,7 +74,11 @@ class WhiteBoard:
                         self.circles[active_circle].locked = True
 
                 if event.type == pygame.MOUSEBUTTONUP:
-                    self.circles[active_circle].locked = False
+                    if(active_circle != -1):
+                        self.circles[active_circle].locked = False
                     active_circle = -1
 
         pygame.quit()
+
+    def setCircles(self, circles: list[c.Circle]):
+        self.circles = circles

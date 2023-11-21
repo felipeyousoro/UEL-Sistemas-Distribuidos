@@ -10,14 +10,14 @@ class BoardDatabase:
     DATABASE_LOCK: int = 6
     DATABASE_UNLOCK: int = 7
 
-    DATABASE_SERIAL_ID: int = 0
 
     def __init__(self):
+        self.serial_id: int = 0
         self.circles: list[c.Circle] = []
 
     def addCircle(self, circle: c.Circle):
-        circle.id = self.DATABASE_SERIAL_ID
-        self.DATABASE_SERIAL_ID += 1
+        circle.id = self.serial_id
+        self.serial_id += 1
 
         self.circles.append(circle)
 
