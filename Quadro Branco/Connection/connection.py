@@ -28,6 +28,10 @@ class Connection:
             self.socket.connect(('localhost', host_port))
 
     def listen_to_connections(self):
+        """
+        Will listen to new connections and send the current database to them
+        Whenever a new connection is made, it will be added to the connections list, a new port will be assigned to communicate with it and a new thread will be started to handle the communication
+        """
         print('Listening BILU TETEIA')
         self.socket.listen(24)
 
@@ -55,7 +59,7 @@ class Connection:
 
             self.open_port += 1
 
-    def send(self, data: bytes):
+    def send_data_to_connections(self, data: bytes):
         data.zfill(128)
         for conn in self.connections:
             if not conn[1]:
