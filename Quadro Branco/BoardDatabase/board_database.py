@@ -10,7 +10,6 @@ class BoardDatabase:
     DATABASE_LOCK: int = 6
     DATABASE_UNLOCK: int = 7
 
-
     def __init__(self):
         self.serial_id: int = 0
         self.circles: list[c.Circle] = []
@@ -23,31 +22,31 @@ class BoardDatabase:
 
         return self.DATABASE_ADD, circle
 
-    def lockCircle(self, id_circle: int):
+    def lockCircle(self, id_circle: int, requester: int):
         local_circle: c.Circle = None
         for c in self.circles:
             if c.id == id_circle:
                 local_circle = c
                 break
 
-        if local_circle is None or local_circle.locked:
+        if local_circle is None or local_circle.lock_holder != -1:
             return self.DATABASE_REJECT, None
 
-        local_circle.locked = True
+        local_circle.lock_holder = requester
 
         return self.DATABASE_LOCK, local_circle
 
-    def unlockCircle(self, id_circle: int):
+    def unlockCircle(self, id_circle: int, requester: int):
         local_circle: c.Circle = None
         for c in self.circles:
             if c.id == id_circle:
                 local_circle = c
                 break
 
-        if local_circle is None or not local_circle.locked:
+        if local_circle is None or local_circle.lock_holder != requester:
             return self.DATABASE_REJECT, None
 
-        local_circle.unlock = False
+        local_circle.lock_holder = -1
 
         return self.DATABASE_UNLOCK, local_circle
 
@@ -58,7 +57,7 @@ class BoardDatabase:
                 local_circle = c
                 break
 
-        if local_circle is None or local_circle.locked:
+        if local_circle is None or local_circle.lock_holder:
             return self.DATABASE_REJECT, None
 
         local_circle.x = circle.x
@@ -78,7 +77,7 @@ class BoardDatabase:
                 break
             position += 1
 
-        if local_circle is None or local_circle.locked:
+        if local_circle is None or local_circle.lock_holder:
             return self.DATABASE_REJECT, None
 
         self.circles.pop(position)

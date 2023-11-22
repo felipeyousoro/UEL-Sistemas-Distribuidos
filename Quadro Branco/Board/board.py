@@ -47,7 +47,7 @@ class Board:
                     position = pygame.mouse.get_pos()
                     if event.button == 1:
                         for num, circle in enumerate(self.circles):
-                            if circle.isPointInside(position[0], position[1]) and not circle.locked:
+                            if circle.isPointInside(position[0], position[1]) and circle.lock_holder == -1:
                                 if pygame.key.get_mods() & pygame.KMOD_CTRL:
                                     circle.r += 5
                                     circle.width += 1
@@ -58,12 +58,21 @@ class Board:
                                     active_circle = num
                                 break
                         else:
-                            self.connection.requestAddCircle(c.Circle(0, position[0], position[1], 20, 5, self.draw_color))
-                    # elif event.button == 3:
-                    #     for num, circle in enumerate(self.circles):
-                    #         if circle.isPointInside(position[0], position[1]) and not circle.locked:
-                    #             self.circles.pop(num)
-                    #             break
+                            self.connection.request_add_circle(c.Circle(0, position[0], position[1], 20, 5, self.draw_color))
+                    elif event.button == 3:
+                        for num, circle in enumerate(self.circles):
+                            if circle.isPointInside(position[0], position[1]):
+                                print(f'Requesting lock/unlock for circle {circle.id}')
+                                if circle.lock_holder == -1:
+                                    self.connection.request_lock_circle(circle)
+                                    print('(!) > Lock accept')
+                                elif circle.lock_holder == self.connection.port:
+                                    self.connection.request_unlock_circle(circle)
+                                    print('(!) > Unlock accept')
+                                else:
+                                    print(f'(!) > Lock reject, circle {circle.id} is locked by {circle.lock_holder}')
+                                break
+
 
                 # if event.type == pygame.MOUSEMOTION:
                 #     position = pygame.mouse.get_pos()

@@ -6,13 +6,13 @@ class Circle:
         self.r = r
         self.width = width
         self.color = color
-        self.locked = False
+        self.lock_holder = -1
 
     def isPointInside(self, x: int, y: int) -> bool:
         return (x - self.x) ** 2 + (y - self.y) ** 2 <= self.r ** 2
 
     def __repr__(self):
-        return f'circle;{self.id};{self.x};{self.y};{self.r};{self.width};{self.color[0]},{self.color[1]},{self.color[2]};{self.locked}'
+        return f'circle;{self.id};{self.x};{self.y};{self.r};{self.width};{self.color[0]},{self.color[1]},{self.color[2]};{self.lock_holder}'
 
     def encode(self) -> bytes:
         return repr(self).encode()
