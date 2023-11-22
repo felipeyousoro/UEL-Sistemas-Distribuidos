@@ -20,9 +20,8 @@ class Board:
 
         self.running = True
 
-        self.circles: list[c.Circle] = []
-
         self.connection = connection
+        self.circles = self.connection.database.circles
 
     def begin(self):
         active_circle = -1
@@ -59,7 +58,7 @@ class Board:
                                     active_circle = num
                                 break
                         else:
-                            self.connection.sendCircle(c.Circle(0, position[0], position[1], 20, 5, self.draw_color))
+                            self.connection.requestAddCircle(c.Circle(0, position[0], position[1], 20, 5, self.draw_color))
                     # elif event.button == 3:
                     #     for num, circle in enumerate(self.circles):
                     #         if circle.isPointInside(position[0], position[1]) and not circle.locked:
@@ -80,5 +79,5 @@ class Board:
 
         pygame.quit()
 
-    def setCircles(self, circles: list[c.Circle]):
+    def set_circles(self, circles: list[c.Circle]):
         self.circles = circles

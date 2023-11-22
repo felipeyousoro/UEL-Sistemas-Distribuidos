@@ -9,7 +9,7 @@ import socket
 
 
 class Connection:
-    def __init__(self, database: board_database.BoardDatabase, port: int, host=False):
+    def __init__(self, database: board_database.BoardDatabase, port: int, host=False, host_port=0):
         self.database = database
 
         self.host = host
@@ -17,18 +17,18 @@ class Connection:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind(('localhost', port))
 
-        self.connections: list[[socket.socket, bool]] = []
-        self.open_port: int = 4201
+        if host:
+            self.connections: list[[socket.socket, bool]] = []
+            self.open_port: int = 4201
 
-        self.rcv_thread = threading.Thread(target=self.run)
-        self.rcv_thread.start()
+            self.listen_thread = threading.Thread(target=self.listen_to_connections)
+            self.listen_thread.start()
 
-        # self.macaco_thread = threading.Thread(target=self.macaco)
-        # self.macaco_thread.start()
+        else:
+            self.socket.connect(('localhost', host_port))
 
-
-    def run(self):
-        print('Listening')
+    def listen_to_connections(self):
+        print('Listening BILU TETEIA')
         self.socket.listen(24)
 
         while True:
@@ -49,7 +49,7 @@ class Connection:
 
             new_connection.connect(('localhost', addr[1]))
 
-            self.sendCurrentDb(new_connection)
+            self.send_current_db(new_connection)
 
             self.connections.append([new_connection, True])
 
@@ -66,7 +66,7 @@ class Connection:
                 print(f'Connection {conn[0]} closed')
                 conn[1] = False
 
-    def sendCurrentDb(self, conn: socket.socket):
+    def send_current_db(self, conn: socket.socket):
         try:
             for circle in self.database.circles:
                 conn.send(circle.encode().zfill(128))
@@ -74,9 +74,9 @@ class Connection:
         except:
             print(f'Failed to send current db to {conn}')
 
-    def sendCircle(self, circle: c.Circle):
-        print(f'Adicionando circulo {circle}')
-        print(self.database.circles)
+    def request_add_circle(self, circle: c.Circle):
+        # print(f'Adicionando circulo {circle}')
+        # print(self.database.circles)
         if self.host:
             self.database.addCircle(circle)
             self.send(circle.encode().zfill(128))
