@@ -10,19 +10,22 @@ import socket
 class Connection:
     def init_client(self):
         print(f'Connecting to {self.host_port}')
-        self.socket.connect(('localhost', self.host_port))
 
-        self.socket.send(b'CODE;JOIN')
-        msg = self.socket.recv(128).lstrip(b'0')
+        # Informs the host the socket wants to communicate with it
+        self.comm_socket.connect(('localhost', self.host_port))
+        self.comm_socket.send(b'CODE;JOIN')
+        msg = self.comm_socket.recv(128).lstrip(b'0')
         print(msg.decode())
-        self.socket.send(b'CODE;ACK')
-        self.socket.close()
+        self.comm_socket.send(b'CODE;ACK')
+        self.comm_socket.close()
 
         self.host_port = int(msg.decode())
 
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.bind(('localhost', self.port))
-        self.socket.connect(('localhost', self.host_port))
+        # Connects to the port the host opened to
+        #   communicate with the client
+        self.comm_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.comm_socket.bind(('localhost', self.port - 100))
+        self.comm_socket.connect(('localhost', self.host_port))
 
         self.listen_thread = threading.Thread(target=self.listen_to_host)
         self.listen_thread.start()
@@ -34,8 +37,13 @@ class Connection:
         self.port: int = port
         self.host_port: int = host_port
 
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.bind(('localhost', self.port))
+        #   This socket is used to listen to connection requests
+        #   It may be used either for the host to listen for clients
+        # wanting to join the board
+        #   Or for the client to communicate with other client
+        # during an election process
+        self.listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.listen_socket.bind(('localhost', self.port))
 
         if host:
             self.connections: list[[socket.socket, bool]] = []
@@ -45,11 +53,13 @@ class Connection:
             self.listen_thread.start()
 
         else:
+            self.comm_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.comm_socket.bind(('localhost', self.port - 100))
             self.init_client()
 
     def listen_to_host(self):
         while True:
-            data = self.socket.recv(128).lstrip(b'0')
+            data = self.comm_socket.recv(128).lstrip(b'0')
             header = data.split(b';')[0].decode()
 
             body = data[len(header) + 1:]
@@ -92,15 +102,11 @@ class Connection:
                 self.send_data_to_connections((b'UNLOCK;' + str(circle_id).encode() + b';' + str(port).encode()).zfill(128))
 
     def listen_to_new_conns(self):
-        """
-        Will listen to new connections and send the current database to them
-        Whenever a new connection is made, it will be added to the connections list, a new port will be assigned to communicate with it and a new thread will be started to handle the communication
-        """
         print(f'-----    Listening to new connections in port: {self.port}    -----')
-        self.socket.listen(24)
+        self.listen_socket.listen(24)
 
         while True:
-            conn, addr = self.socket.accept()
+            conn, addr = self.listen_socket.accept()
 
             request = conn.recv(128).decode()
             print(f'Request: {request} from {addr}')
@@ -151,7 +157,7 @@ class Connection:
             self.database.addCircle(circle)
             self.send_data_to_connections((b'ADD;' + circle.encode()).zfill(128))
         else:
-            self.socket.send((b'ADD;' + circle.encode()).zfill(128))
+            self.comm_socket.send((b'ADD;' + circle.encode()).zfill(128))
 
     def request_lock_circle(self, circle: c.Circle):
         if self.host:
@@ -161,11 +167,11 @@ class Connection:
             else:
                 self.send_data_to_connections((b'LOCK;' + str(circle.id).encode() + b';' + str(self.port).encode()).zfill(128))
         else:
-            self.socket.send((b'LOCK;' + str(circle.id).encode() + b';' + str(self.port).encode()).zfill(128))
+            self.comm_socket.send((b'LOCK;' + str(circle.id).encode() + b';' + str(self.port).encode()).zfill(128))
 
     def request_unlock_circle(self, circle: c.Circle):
         if self.host:
             self.database.unlockCircle(circle.id, self.port)
             self.send_data_to_connections((b'UNLOCK;' + str(circle.id).encode() + b';' + str(self.port).encode()).zfill(128))
         else:
-            self.socket.send((b'UNLOCK;' + str(circle.id).encode() + b';' + str(self.port).encode()).zfill(128))
+            self.comm_socket.send((b'UNLOCK;' + str(circle.id).encode() + b';' + str(self.port).encode()).zfill(128))
