@@ -8,11 +8,12 @@ import socket
 
 
 class Connection:
-    def init_client(self):
+    def init_node(self):
         print(f'Connecting to {self.host_port}')
 
         # Informs the host the socket wants to communicate with it
         self.comm_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.comm_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.comm_socket.bind(('localhost', self.port - 100))
         self.comm_socket.connect(('localhost', self.host_port))
         self.comm_socket.send(b'CODE;JOIN')
@@ -24,7 +25,7 @@ class Connection:
         self.host_port = int(msg.decode())
 
         # Connects to the port the host opened to
-        #   communicate with the client
+        #   communicate with the node
         self.comm_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.comm_socket.bind(('localhost', self.port - 100))
         self.comm_socket.connect(('localhost', self.host_port))
@@ -37,6 +38,8 @@ class Connection:
         self.host_error_thread.daemon = True
         self.host_error_thread.start()
 
+        self.host_error = False
+
     def init_host(self):
         self.open_port = 4201
 
@@ -44,24 +47,102 @@ class Connection:
         self.listen_thread.daemon = True
         self.listen_thread.start()
 
-    def reset_connection(self):
-        self.host = False
-        self.host_port = -1
-        self.clients = []
-        self.connections = []
-        self.comm_socket = None
+        self.host_error = False
 
     def host_is_alive(self):
         while not self.host_error:
             pass
         self.begin_election()
 
+    # TODO: e se não tiver nenhuma porta que não a minha?
+    def get_next_node(self):
+        key = self.port - 100
+
+        for node in self.nodes:
+            if node[1] > key and node[2]:
+                return node
+
+        return self.nodes[0]
+
+    def election_listen_to_node(self):
+        self.received_nodes = []
+
+        print(f'Listening to new nodes in port: {self.port}')
+        conn, addr = self.listen_socket.accept()
+
+        while True:
+            data = conn.recv(128).lstrip(b'0')
+
+            header = data.split(b';')[0].decode()
+
+            body = data[len(header) + 1:]
+
+            if header == 'COORDINATOR':
+                host_port = int(body.decode())
+                self.host_port = host_port
+                print(f'New host: {host_port}')
+                break
+            elif header == 'ELECTION':
+                nodes = body.decode().split(';')
+                for node in nodes:
+                    if node not in self.received_nodes:
+                        self.received_nodes.append(node)
+                print(f'Oi: {self.received_nodes}')
+                if str(self.port) in self.received_nodes:
+                    print('FILHO DA PUTAAAAAAAAAAAAAAAAAAAAA!!')
+                    self.host_port = int(max(self.received_nodes))
+                    break
+
+    def election_send_to_node(self):
+        self.comm_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.comm_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.comm_socket.bind(('localhost', self.port - 100))
+        self.comm_socket.connect(('localhost', self.get_next_node()[1] + 100))
+
+        while True:
+            time.sleep(2)
+            try:
+                if self.host_port == -1:
+                    nodes_to_send = self.received_nodes.copy()
+                    nodes_to_send.append(str(self.port))
+                    self.comm_socket.send(b'ELECTION;' + ';'.join(nodes_to_send).encode())
+                else:
+                    self.comm_socket.send(b'COORDINATOR;' + str(self.host_port).encode())
+                    self.comm_socket.close()
+                    break
+            except Exception as err:
+                print(err)
+                #self.nodes[self.nodes.index(self.get_next_node())][2] = False
+
     def begin_election(self):
         print('Começando eleição')
-        self.reset_connection()
-        self.host = True
-        self.init_host()
-        self.host_error = False
+
+        self.host = False
+        self.host_port = -1
+        self.connections = []
+        self.comm_socket = None
+        self.received_nodes = []
+
+        self.nodes.sort(key=lambda x: x[1])
+
+        if len(self.nodes) == 0:
+            self.host_port = self.port
+        else:
+            listen_thread = threading.Thread(target=self.election_listen_to_node)
+            listen_thread.daemon = True
+            listen_thread.start()
+
+            self.election_send_to_node()
+
+        if self.host_port == self.port:
+            print('Sou o novo host')
+            self.init_host()
+        else:
+            print(f'Novo host: {self.host_port}')
+            time.sleep(2)
+            self.init_node()
+
+        self.nodes = []
 
     def __init__(self, database: board_database.BoardDatabase, port: int, host=False, host_port=-1):
         self.database = database
@@ -71,14 +152,15 @@ class Connection:
         self.host_port: int = host_port
 
         #   This socket is used to listen to connection requests
-        #   It may be used either for the host to listen for clients
+        #   It may be used either for the host to listen for nodes
         # wanting to join the board
-        #   Or for the client to communicate with other client
+        #   Or for the node to communicate with other node
         # during an election process
         self.listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.listen_socket.bind(('localhost', self.port))
+        self.listen_socket.listen(24)
 
-        self.clients: list[socket.socket, int, bool] = []
+        self.nodes: list[socket.socket, int, bool] = []
 
         self.host_error = False
         self.open_port = None
@@ -86,11 +168,12 @@ class Connection:
         self.listen_thread = None
         self.host_error_thread = None
         self.comm_socket = None
+        self.received_nodes = None
 
         if host:
             self.init_host()
         else:
-            self.init_client()
+            self.init_node()
 
     def listen_to_host(self):
         try:
@@ -112,7 +195,7 @@ class Connection:
                     self.database.unlockCircle(circle_id, port)
                 elif header == 'NEW-CONN':
                     port = int(body.decode())
-                    self.clients.append([None, port, True])
+                    self.nodes.append([None, port, True])
         except:
             self.host_error = True
 
@@ -150,7 +233,6 @@ class Connection:
 
     def listen_to_new_conns(self):
         print(f'-----    Listening to new connections in port: {self.port}    -----')
-        self.listen_socket.listen(24)
 
         while True:
             conn, addr = self.listen_socket.accept()
@@ -174,7 +256,7 @@ class Connection:
 
             self.send_data_to_connections((b'NEW-CONN;' + str(addr[1]).encode()).zfill(128))
 
-            self.clients.append([new_conn, addr[1], True])
+            self.nodes.append([new_conn, addr[1], True])
 
             new_conn_thread = threading.Thread(target=self.listen_to_connection, args=(new_conn,))
             new_conn_thread.daemon = True
@@ -184,7 +266,7 @@ class Connection:
 
     def send_data_to_connections(self, data: bytes):
         data.zfill(128)
-        for c in self.clients:
+        for c in self.nodes:
             if not c[2]:
                 continue
             try:
@@ -202,7 +284,7 @@ class Connection:
 
     def send_connections(self, conn: socket.socket):
         try:
-            for c in self.clients:
+            for c in self.nodes:
                 if not c[2]:
                     continue
                 conn.send((b'NEW-CONN;' + str(c[1]).encode()).zfill(128))
