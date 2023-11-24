@@ -11,7 +11,10 @@ class Connection:
     def init_node(self):
         print(f'Connecting to {self.host_port}')
 
+        #chekc if comm_socket is in use
+        time.sleep(1 + random.random() * 5)
         # Informs the host the socket wants to communicate with it
+
         self.comm_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.comm_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.comm_socket.bind(('localhost', self.port - 100))
@@ -30,15 +33,18 @@ class Connection:
         self.comm_socket.bind(('localhost', self.port - 100))
         self.comm_socket.connect(('localhost', self.host_port))
 
+        self.host = False
+
         self.listen_thread = threading.Thread(target=self.listen_to_host)
         self.listen_thread.daemon = True
         self.listen_thread.start()
+
+        self.host_error = False
 
         self.host_error_thread = threading.Thread(target=self.host_is_alive)
         self.host_error_thread.daemon = True
         self.host_error_thread.start()
 
-        self.host_error = False
 
     def init_host(self):
         self.open_port = 4201
@@ -47,6 +53,7 @@ class Connection:
         self.listen_thread.daemon = True
         self.listen_thread.start()
 
+        self.host = True
         self.host_error = False
 
     def host_is_alive(self):
@@ -87,9 +94,7 @@ class Connection:
                 for node in nodes:
                     if node not in self.received_nodes:
                         self.received_nodes.append(node)
-                print(f'Oi: {self.received_nodes}')
                 if str(self.port) in self.received_nodes:
-                    print('FILHO DA PUTAAAAAAAAAAAAAAAAAAAAA!!')
                     self.host_port = int(max(self.received_nodes))
                     break
 
