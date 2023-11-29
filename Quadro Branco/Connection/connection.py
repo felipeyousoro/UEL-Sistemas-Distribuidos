@@ -11,7 +11,7 @@ class Connection:
     def init_node(self):
         print(f'Connecting to {self.host_port}')
 
-        #chekc if comm_socket is in use
+        # chekc if comm_socket is in use
         time.sleep(1 + random.random() * 5)
         # Informs the host the socket wants to communicate with it
 
@@ -44,7 +44,6 @@ class Connection:
         self.host_error_thread = threading.Thread(target=self.host_is_alive)
         self.host_error_thread.daemon = True
         self.host_error_thread.start()
-
 
     def init_host(self):
         self.open_port = 4201
@@ -117,7 +116,7 @@ class Connection:
                     break
             except Exception as err:
                 print(err)
-                #self.nodes[self.nodes.index(self.get_next_node())][2] = False
+                # self.nodes[self.nodes.index(self.get_next_node())][2] = False
 
     def begin_election(self):
         print('Começando eleição')
@@ -193,15 +192,22 @@ class Connection:
                 elif header == 'LOCK':
                     circle_id = int(body.split(b';')[0].decode())
                     port = int(body.split(b';')[1].decode())
-                    code, circle = self.database.lockCircle(circle_id, port)
+                    self.database.lockCircle(circle_id, port)
                 elif header == 'UNLOCK':
                     circle_id = int(body.split(b';')[0].decode())
                     port = int(body.split(b';')[1].decode())
                     self.database.unlockCircle(circle_id, port)
+                elif header == 'UPDATE':
+                    circle_id = int(body.split(b';')[0].decode())
+                    port = int(body.split(b';')[1].decode())
+                    circle = c.Circle.decode(body[len(str(circle_id).encode()) + len(str(port).encode()) + 2:])
+                    self.database.updateCircle(circle_id, circle, port)
                 elif header == 'NEW-CONN':
                     port = int(body.decode())
                     self.nodes.append([None, port, True])
-        except:
+                else:
+                    print('Unknown pack', data)
+        except ConnectionResetError:
             self.host_error = True
 
     def listen_to_connection(self, conn: socket.socket):
@@ -218,7 +224,6 @@ class Connection:
                 elif header == 'LOCK':
                     circle_id = int(body.split(b';')[0].decode())
                     port = int(body.split(b';')[1].decode())
-
                     code, circle = self.database.lockCircle(circle_id, port)
                     if code == board_database.BoardDatabase.DATABASE_REJECT:
                         pass
@@ -228,10 +233,22 @@ class Connection:
                 elif header == 'UNLOCK':
                     circle_id = int(body.split(b';')[0].decode())
                     port = int(body.split(b';')[1].decode())
+                    code, circle = self.database.unlockCircle(circle_id, port)
 
-                    self.database.unlockCircle(circle_id, port)
+                    if code == board_database.BoardDatabase.DATABASE_REJECT:
+                        pass
+                    else:
+                        self.send_data_to_connections(
+                            (b'UNLOCK;' + str(circle_id).encode() + b';' + str(port).encode()).zfill(128))
+                elif header == 'UPDATE':
+                    circle_id = int(body.split(b';')[0].decode())
+                    port = int(body.split(b';')[1].decode())
+                    circle = c.Circle.decode(body[len(str(circle_id).encode()) + len(str(port).encode()) + 2:])
+
+                    self.database.updateCircle(circle_id, circle, port)
                     self.send_data_to_connections(
-                        (b'UNLOCK;' + str(circle_id).encode() + b';' + str(port).encode()).zfill(128))
+                        (b'UPDATE;' + str(circle_id).encode() + b';' + str(port).encode() + circle.encode()).zfill(128))
+
         except:
             print(f'Connection {conn} closed')
             conn.close()
@@ -305,6 +322,29 @@ class Connection:
             self.send_data_to_connections((b'ADD;' + circle.encode()).zfill(128))
         else:
             self.comm_socket.send((b'ADD;' + circle.encode()).zfill(128))
+
+    def request_move_circle(self, circle: c.Circle, x: int, y: int):
+        if self.host_error:
+            print('Host is dead, wait for a new one')
+            return
+        if self.host:
+            self.database.updateCircle(circle.id, c.Circle(circle.id, x, y, circle.r, circle.width, circle.color),
+                                       self.port)
+            self.send_data_to_connections(
+                (b'UPDATE;' + str(circle.id).encode() + b';' + str(self.port).encode() + b';' + c.Circle(
+                    circle.id,
+                    x, y,
+                    circle.r,
+                    circle.width,
+                    circle.color).encode()).zfill(128))
+        else:
+            self.comm_socket.send(
+                (b'UPDATE;' + str(circle.id).encode() + b';' + str(self.port).encode() + b';' + c.Circle(
+                    circle.id,
+                    x, y,
+                    circle.r,
+                    circle.width,
+                    circle.color).encode()).zfill(128))
 
     def request_lock_circle(self, circle: c.Circle):
         if self.host_error:

@@ -50,14 +50,14 @@ class BoardDatabase:
 
         return self.DATABASE_UNLOCK, local_circle
 
-    def updateCircle(self, id_circle: int, circle: c.Circle):
+    def updateCircle(self, id_circle: int, circle: c.Circle, requester: int):
         local_circle = None
         for c in self.circles:
             if c.id == id_circle:
                 local_circle = c
                 break
 
-        if local_circle is None or local_circle.lock_holder:
+        if local_circle is None or local_circle.lock_holder != requester:
             return self.DATABASE_REJECT, None
 
         local_circle.x = circle.x
