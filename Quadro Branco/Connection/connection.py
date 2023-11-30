@@ -2,6 +2,7 @@ import random
 import threading
 import time
 
+import select
 from BoardDatabase import board_database
 from Circle import circle as c
 import socket
@@ -89,7 +90,6 @@ class Connection:
             pass
         self.begin_election()
 
-    # TODO: e se não tiver nenhuma porta que não a minha?
     def get_next_node(self):
         key = self.port
 
@@ -102,7 +102,16 @@ class Connection:
 
         return self.nodes[0]
 
+    def clean_buffer(self):
+        readables, _, _ = select.select([self.main_socket], [], [], 0.1)
+        for readable in readables:
+            try:
+                readable.recv(128)
+            except:
+                pass
+
     def election_listen_to_node(self):
+        self.clean_buffer()
 
         self.received_nodes = []
 
@@ -111,7 +120,6 @@ class Connection:
         while True:
             print(f'Current ring status: {self.received_nodes}')
             conn, addr = self.main_socket.accept()
-
             data = conn.recv(128).lstrip(b'0')
 
             header = data.split(b';')[0].decode()
@@ -120,6 +128,14 @@ class Connection:
 
             if header == 'COORDINATOR':
                 host_port = int(body.decode())
+                # QUE GAMBIARRA KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK
+                client = None
+                for node in self.nodes:
+                    if node[2] == host_port:
+                        client = node
+                        break
+                if client is None and host_port != self.port:
+                    continue
                 self.host_port = host_port
                 print(f'Coordinator detected, new host: {host_port}')
             elif header == 'ELECTION':
@@ -129,6 +145,7 @@ class Connection:
                         self.received_nodes.append(node)
                 if str(self.port) in self.received_nodes:
                     self.host_port = int(max(self.received_nodes))
+            conn.close()
             if self.host_port != -1:
                 print(f'FINAL RING: {self.received_nodes}')
                 break
@@ -136,7 +153,7 @@ class Connection:
     def election_send_to_node(self):
         while True:
             try:
-                time.sleep(3)
+                time.sleep(1)
 
                 next_node = self.get_next_node()
                 if next_node is None:
@@ -154,22 +171,27 @@ class Connection:
                     nodes_to_send = self.received_nodes.copy()
                     nodes_to_send.append(str(self.port))
                     self.comm_socket.send(b'ELECTION;' + ';'.join(nodes_to_send).encode())
+                    self.comm_socket.close()
                 else:
                     self.comm_socket.send(b'COORDINATOR;' + str(self.host_port).encode())
                     self.comm_socket.close()
                     break
             except Exception as err:
                 print(err)
+                self.comm_socket.close()
                 self.nodes[self.nodes.index(self.get_next_node())][3] = False
 
     def begin_election(self):
         print('Beginning election')
+        print(f'Nodes in the ring: {self.nodes}')
 
         self.host = False
         self.host_port = -1
         self.connections = []
         self.comm_socket = None
         self.received_nodes = []
+
+        time.sleep(10)
 
         self.nodes.sort(key=lambda x: x[2])
 
@@ -182,15 +204,15 @@ class Connection:
 
             self.election_send_to_node()
 
+        self.nodes = []
+
         if self.host_port == self.port:
             print('Sou o novo host')
             self.init_host()
         else:
             print(f'Novo host: {self.host_port}')
-            time.sleep(2)
+            time.sleep(1)
             self.init_node()
-
-        self.nodes = []
 
     def listen_to_host(self):
         try:
@@ -262,7 +284,8 @@ class Connection:
 
                     self.database.updateCircle(circle_id, circle, port)
                     self.send_data_to_connections(
-                        (b'UPDATE;' + str(circle_id).encode() + b';' + str(port).encode() + b';' + circle.encode()).zfill(128))
+                        (b'UPDATE;' + str(circle_id).encode() + b';' + str(
+                            port).encode() + b';' + circle.encode()).zfill(128))
         except:
             print(f'Connection {conn} closed')
             conn.close()
