@@ -1,5 +1,6 @@
 import sys
 import threading
+import socket
 
 from BoardDatabase import board_database
 from Board import board
@@ -10,12 +11,11 @@ if __name__ == '__main__':
     db: board_database.BoardDatabase = board_database.BoardDatabase()
 
     is_host = sys.argv[1] == 'host'
-    port = int(sys.argv[2])
     if is_host:
-        conn: connection.Connection = connection.Connection(db, port, host=True)
+        conn: connection.Connection = connection.Connection(db, host=True)
     else:
-        host_port = int(sys.argv[3])
-        conn: connection.Connection = connection.Connection(db, port, host_port=host_port)
+        host_port = int(sys.argv[2])
+        conn: connection.Connection = connection.Connection(db, host_port=host_port)
 
     wb: board.Board = board.Board(conn)
     wb.begin()
